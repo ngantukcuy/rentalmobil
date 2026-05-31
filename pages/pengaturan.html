@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyCar – Pengaturan</title>
+  <style>body{visibility:hidden;}
+    
+    /* ===== SIDEBAR MOBILE RESPONSIVE ===== */
+    .hamburger-btn {
+      display: none;
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 300;
+      background: var(--primary, #1a3c6e);
+      border: none;
+      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .hamburger-btn i { color: #fff; font-size: 22px; }
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 149;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar-overlay.open {
+      display: block;
+      opacity: 1;
+    }
+    @media (max-width: 768px) {
+      .hamburger-btn { display: flex; }
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 150 !important;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0 !important; }
+      .topbar { padding-left: 68px !important; }
+      .topbar-search { display: none; }
+    }
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      .two-col { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr !important; }
+      .page-content, .content-area { padding: 16px !important; }
+      .topbar { padding: 10px 16px 10px 68px !important; }
+      .table-wrap, .table-container { overflow-x: auto; }
+      table { min-width: 540px; }
+    }
+
+    .snav-item.admin-only { display: none; }
+    </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #1a3c6e; --primary-dark: #0f2347; --accent: #e85d04;
+      --accent-light: #ff7733; --light-blue: #4a90d9; --bg: #f0f4f8;
+      --sidebar-w: 260px; --card-radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: var(--bg); display: flex; min-height: 100vh; }
+
+    .sidebar { width: var(--sidebar-w); background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary) 100%); min-height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; z-index: 100; box-shadow: 4px 0 20px rgba(0,0,0,0.2); }
+    .sidebar-brand { padding: 28px 24px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand i { font-size: 36px; color: var(--accent); }
+    .sidebar-brand h2 { font-size: 22px; font-weight: 800; color: #fff; }
+    .sidebar-brand h2 em { color: var(--accent); font-style: normal; }
+    .sidebar-nav { flex: 1; padding: 20px 0; }
+    .nav-section-title { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); padding: 12px 24px 6px; text-transform: uppercase; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 13px 24px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.25s; border-left: 3px solid transparent; text-decoration: none; font-size: 14px; font-weight: 500; }
+    .nav-item i { font-size: 20px; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active { background: rgba(232,93,4,0.15); color: #fff; border-left-color: var(--accent); }
+    .nav-item.active i { color: var(--accent); }
+    .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .user-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; font-weight: 700; }
+    .user-details { flex: 1; }
+    .user-details .name { font-size: 13px; font-weight: 600; color: #fff; }
+    .user-details .role { font-size: 11px; color: rgba(255,255,255,0.5); }
+    .logout-btn { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 18px; }
+    .logout-btn:hover { color: var(--accent); }
+
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 50; }
+    .topbar-left h2 { font-size: 20px; font-weight: 700; color: var(--primary); }
+    .topbar-left p { font-size: 12px; color: #888; }
+    .page-content { padding: 28px 32px; flex: 1; display: flex; gap: 24px; align-items: flex-start; }
+
+    /* SIDEBAR SETTINGS */
+    .settings-nav { width: 220px; flex-shrink: 0; background: #fff; border-radius: var(--card-radius); padding: 16px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.06); position: sticky; top: 80px; }
+    .snav-item { display: flex; align-items: center; gap: 10px; padding: 12px 20px; font-size: 13px; font-weight: 500; color: #555; cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; }
+    .snav-item:hover { background: var(--bg); color: var(--primary); }
+    .snav-item.active { background: rgba(74,144,217,0.08); color: var(--primary); border-left-color: var(--light-blue); font-weight: 600; }
+    .snav-item i { font-size: 18px; }
+
+    /* SETTINGS PANELS */
+    .settings-content { flex: 1; min-width: 0; }
+    .settings-panel { display: none; }
+    .settings-panel.active { display: block; }
+
+    .scard { background: #fff; border-radius: var(--card-radius); padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 20px; }
+    .scard-title { font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .scard-sub { font-size: 12px; color: #888; margin-bottom: 22px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 12px; font-weight: 600; color: #555; }
+    .form-group input, .form-group select, .form-group textarea { padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--light-blue); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .help-text { font-size: 11px; color: #9ca3af; margin-top: 3px; }
+
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-outline { background: #fff; color: #555; border: 1.5px solid #d1d5db; }
+
+    /* TOGGLE */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f1f5f9; }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-info h4 { font-size: 13px; font-weight: 600; color: #333; }
+    .toggle-info p { font-size: 12px; color: #888; margin-top: 2px; }
+    .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 24px; transition: 0.3s; }
+    .slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+    input:checked + .slider { background: var(--light-blue); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* DENDA TABLE */
+    .denda-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .denda-table th { background: var(--bg); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); padding: 10px 14px; text-align: left; font-weight: 700; }
+    .denda-table td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; }
+    .denda-table tr:last-child td { border-bottom: none; }
+    .denda-table input { width: 100%; padding: 6px 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; }
+    .denda-table input:focus { border-color: var(--light-blue); }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 28px; right: 28px; background: #22c55e; color: #fff; padding: 14px 22px; border-radius: 12px; font-size: 13px; font-weight: 500; z-index: 9999; display: none; }
+    .toast.show { display: block; }
+    footer { background: #fff; padding: 16px 32px; text-align: center; font-size: 12px; color: #aaa; border-top: 1px solid #e2e8f0; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <button class="hamburger-btn" id="hamburgerBtn" aria-label="Buka menu">
+    <i class='bx bx-menu'></i>
+  </button>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <i class='bx bxs-car'></i>
+      <h2>Rental, <em>Easy Car</em></h2>
+    </div>
+        <nav class="sidebar-nav">
+      <div class="nav-section-title">Menu Utama</div>
+      <a href="dashboard.html" class="nav-item" data-role="admin"><i class='bx bxs-dashboard'></i> Dashboard</a>
+      <a href="kendaraan.html" class="nav-item"><i class='bx bxs-car'></i> Kendaraan</a>
+      <a href="booking.html" class="nav-item"><i class='bx bxs-calendar-check'></i> Pemesanan Baru</a>
+      <a href="pesanan-saya.html" class="nav-item"><i class='bx bxs-receipt'></i> Pesanan Saya</a>
+      <a href="admin.html" class="nav-item" data-role="admin"><i class='bx bxs-user-account'></i> Admin Panel</a>
+      <div class="nav-section-title" data-role="admin">Manajemen</div>
+      <a href="promo.html" class="nav-item" data-role="admin"><i class='bx bxs-tag'></i> Promo & Diskon</a>
+      <a href="laporan.html" class="nav-item" data-role="admin"><i class='bx bxs-bar-chart-alt-2'></i> Laporan</a>
+      <a href="pengaturan.html" class="nav-item active"><i class='bx bxs-cog'></i> Pengaturan</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebarAvatar">A</div>
+        <div class="user-details">
+          <div class="name" id="sidebarUserName">Admin EasyCar</div>
+          <div class="role" id="sidebarUserRole">Super Admin</div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()"><i class='bx bx-log-out'></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>⚙️ Pengaturan Sistem</h2>
+        <p>Konfigurasi bisnis, denda, notifikasi, dan tampilan</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- NAV SETTINGS -->
+      <div class="settings-nav">
+        <div class="snav-item active" id="snav-akun" onclick="showPanel('akun', this)"><i class='bx bxs-user-circle'></i> <span class="snav-label-akun">Profil Saya</span></div>
+        <div class="snav-item" id="snav-tampilan" onclick="showPanel('tampilan', this)"><i class='bx bxs-palette'></i> Tema & Tampilan</div>
+        <div class="snav-item admin-only" id="snav-bisnis" onclick="showPanel('bisnis', this)" style="display:none;"><i class='bx bxs-building-house'></i> Info Bisnis</div>
+        <div class="snav-item admin-only" id="snav-denda" onclick="showPanel('denda', this)" style="display:none;"><i class='bx bxs-error-circle'></i> Denda & Biaya</div>
+        <div class="snav-item admin-only" id="snav-pembayaran" onclick="showPanel('pembayaran', this)" style="display:none;"><i class='bx bxs-credit-card'></i> Pembayaran</div>
+        <div class="snav-item admin-only" id="snav-notif" onclick="showPanel('notif', this)" style="display:none;"><i class='bx bxs-bell'></i> Notifikasi</div>
+      </div>
+
+      <!-- PANELS -->
+      <div class="settings-content">
+
+        <!-- PANEL: INFO BISNIS -->
+        <div class="settings-panel active" id="panel-bisnis">
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxs-building-house'></i> Informasi Bisnis</div>
+            <div class="scard-sub">Data perusahaan yang tampil di invoice dan halaman publik</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nama Perusahaan</label>
+                <input type="text" id="bisnisNama" value="EasyCar Rental" />
+              </div>
+              <div class="form-group">
+                <label>Tagline</label>
+                <input type="text" id="bisnisTagline" value="Sewa Mudah, Jalan Nyaman" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>No. WhatsApp / HP</label>
+                <input type="text" id="bisnisWA" value="0812-3456-7890" />
+              </div>
+              <div class="form-group">
+                <label>Email Perusahaan</label>
+                <input type="email" id="bisnisEmail" value="admin@easycar.com" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Kota Operasional</label>
+                <input type="text" id="bisnisKota" value="Pekanbaru, Riau" />
+              </div>
+              <div class="form-group">
+                <label>Jam Operasional</label>
+                <input type="text" id="bisnisJam" value="08:00 – 20:00 WIB (Setiap Hari)" />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Alamat Lengkap</label>
+              <textarea id="bisnisAlamat">Jl. Sudirman No. 123, Pekanbaru, Riau 28292</textarea>
+            </div>
+            <button class="btn btn-primary" onclick="simpan('bisnis')"><i class='bx bx-save'></i> Simpan Perubahan</button>
+          </div>
+        </div>
+
+        <!-- PANEL: DENDA & BIAYA -->
+        <div class="settings-panel" id="panel-denda">
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxs-error-circle'></i> Pengaturan Denda Keterlambatan</div>
+            <div class="scard-sub">Denda dihitung otomatis berdasarkan jumlah hari terlambat saat pengembalian</div>
+            <table class="denda-table">
+              <thead>
+                <tr><th>Kondisi Keterlambatan</th><th>Tarif Denda</th><th>Satuan</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1–1 hari terlambat</td>
+                  <td><input type="number" id="denda1" value="50000" /></td>
+                  <td>Rp/hari</td>
+                </tr>
+                <tr>
+                  <td>2–3 hari terlambat</td>
+                  <td><input type="number" id="denda2" value="75000" /></td>
+                  <td>Rp/hari</td>
+                </tr>
+                <tr>
+                  <td>Lebih dari 3 hari</td>
+                  <td><input type="number" id="denda3" value="100000" /></td>
+                  <td>Rp/hari</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxs-dollar-circle'></i> Biaya Lain-lain</div>
+            <div class="scard-sub">Biaya tambahan yang dapat dikenakan saat pengembalian</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Deposit E-Tilang (Rp)</label>
+                <input type="number" id="depositETilang" value="500000" />
+                <span class="help-text">Dikembalikan 7 hari setelah kendaraan kembali</span>
+              </div>
+              <div class="form-group">
+                <label>Biaya Bersih Kendaraan (Rp)</label>
+                <input type="number" id="biayaBersih" value="100000" />
+                <span class="help-text">Jika kendaraan dikembalikan kotor</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Biaya Bahan Bakar Kurang (Rp/liter)</label>
+                <input type="number" id="biayaBBM" value="15000" />
+              </div>
+              <div class="form-group">
+                <label>DP Minimal (% dari total sewa)</label>
+                <input type="number" id="dpPersen" value="30" min="0" max="100" />
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="simpan('denda')"><i class='bx bx-save'></i> Simpan Pengaturan Denda</button>
+          </div>
+        </div>
+
+        <!-- PANEL: PEMBAYARAN -->
+        <div class="settings-panel" id="panel-pembayaran">
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxs-credit-card'></i> Metode Pembayaran</div>
+            <div class="scard-sub">Aktifkan metode pembayaran yang tersedia untuk pelanggan</div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Transfer Bank (BCA, Mandiri, BNI, BRI)</h4><p>Pelanggan transfer manual ke rekening perusahaan</p></div>
+              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Cash / Tunai</h4><p>Pembayaran langsung di kantor atau saat pengambilan kendaraan</p></div>
+              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>QRIS</h4><p>Scan QR code untuk pembayaran via GoPay, OVO, Dana, dll.</p></div>
+              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Kartu Kredit / Debit</h4><p>Pembayaran melalui mesin EDC di kantor</p></div>
+              <label class="toggle"><input type="checkbox"><span class="slider"></span></label>
+            </div>
+          </div>
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxs-bank'></i> Rekening Bank</div>
+            <div class="scard-sub">Nomor rekening untuk pembayaran transfer</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Bank</label>
+                <select id="bankNama">
+                  <option>BCA</option><option>Mandiri</option><option>BNI</option><option>BRI</option><option>BSI</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Nomor Rekening</label>
+                <input type="text" id="noRek" value="1234567890" />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Atas Nama</label>
+              <input type="text" id="atasNama" value="EasyCar Rental Pekanbaru" />
+            </div>
+            <button class="btn btn-primary" onclick="simpan('pembayaran')"><i class='bx bx-save'></i> Simpan</button>
+          </div>
+        </div>
+
+        <!-- PANEL: NOTIFIKASI -->
+        <div class="settings-panel" id="panel-notif">
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxs-bell'></i> Pengaturan Notifikasi</div>
+            <div class="scard-sub">Atur kapan dan bagaimana sistem mengirimkan notifikasi</div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Notifikasi Pemesanan Baru</h4><p>Kirim notif ke admin saat ada booking baru masuk</p></div>
+              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Pengingat Pengembalian (H-1)</h4><p>Kirim pengingat ke pelanggan sehari sebelum tanggal kembali</p></div>
+              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Alert Keterlambatan</h4><p>Notif admin jika ada kendaraan yang melewati tanggal pengembalian</p></div>
+              <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Email Konfirmasi Booking</h4><p>Kirim email konfirmasi otomatis ke pelanggan setelah booking dikonfirmasi</p></div>
+              <label class="toggle"><input type="checkbox"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>WhatsApp Blast Promo</h4><p>Izinkan sistem kirim info promo ke kontak pelanggan</p></div>
+              <label class="toggle"><input type="checkbox"><span class="slider"></span></label>
+            </div>
+          </div>
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxl-whatsapp'></i> Pengaturan WhatsApp</div>
+            <div class="scard-sub">Nomor WA yang digunakan untuk menghubungi pelanggan</div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Nomor WhatsApp Admin</label>
+              <input type="text" id="waAdmin" value="628123456789" />
+              <span class="help-text">Format internasional tanpa +, contoh: 628123456789</span>
+            </div>
+            <button class="btn btn-primary" onclick="simpan('notif')"><i class='bx bx-save'></i> Simpan</button>
+          </div>
+        </div>
+
+        <!-- PANEL: TAMPILAN -->
+        <div class="settings-panel" id="panel-tampilan">
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxs-palette'></i> Tema Warna</div>
+            <div class="scard-sub">Ubah warna tema. Preview langsung terlihat di halaman ini.</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Warna Utama (Sidebar & Header)</label>
+                <input type="color" id="colorPrimary" value="#1a3c6e" style="height:42px;cursor:pointer;" oninput="previewTheme()" />
+              </div>
+              <div class="form-group">
+                <label>Warna Aksen (Tombol & Badge)</label>
+                <input type="color" id="colorAccent" value="#e85d04" style="height:42px;cursor:pointer;" oninput="previewTheme()" />
+              </div>
+            </div>
+            <!-- Live preview bar -->
+            <div id="themePreviewBar" style="display:flex;gap:10px;align-items:center;margin:10px 0 16px;padding:14px 18px;border-radius:12px;background:#f8f9fb;border:1.5px solid #e8ecf0;">
+              <div id="prevSidebar" style="width:40px;height:40px;border-radius:10px;background:#1a3c6e;"></div>
+              <div id="prevAccent" style="width:40px;height:40px;border-radius:10px;background:#e85d04;"></div>
+              <span style="font-size:12px;color:#888;">← Preview warna sidebar & aksen</span>
+              <button id="prevBtn" style="margin-left:auto;padding:8px 18px;border-radius:8px;border:none;background:#e85d04;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;">Contoh Tombol</button>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Font Website</label>
+                <select id="fontWeb">
+                  <option value="Poppins" selected>Poppins</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Nunito">Nunito</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Bahasa Default</label>
+                <select id="bahasa">
+                  <option value="id" selected>Bahasa Indonesia</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="scard">
+            <div class="scard-title"><i class='bx bx-moon'></i> Mode Gelap</div>
+            <div class="scard-sub">Aktifkan dark mode untuk tampilan lebih nyaman di malam hari</div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Dark Mode</h4><p>Ubah latar belakang menjadi gelap</p></div>
+              <label class="toggle"><input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)"><span class="slider"></span></label>
+            </div>
+            <div style="margin-top:18px;">
+              <button class="btn btn-primary" onclick="simpanTampilan()"><i class='bx bx-save'></i> Simpan & Terapkan Tema</button>
+              <button class="btn" style="background:#f0f4ff;color:var(--primary);border:1.5px solid #dde4f0;margin-left:10px;" onclick="resetTema()"><i class='bx bx-reset'></i> Reset Default</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: AKUN -->
+        <div class="settings-panel active" id="panel-akun">
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxs-user-circle'></i> Profil Saya</div>
+            <div class="scard-sub">Informasi akun yang sedang login</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="adminNama" value="" placeholder="Nama lengkap kamu" />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="adminEmail" value="" readonly style="background:#f8fafc;color:#aaa;" />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>No. Telepon</label>
+              <input type="text" id="adminPhone" value="" placeholder="08xxxxxxxxxx" />
+            </div>
+            <button class="btn btn-primary" onclick="updateProfil()"><i class='bx bx-save'></i> Simpan Profil</button>
+          </div>
+          <div class="scard">
+            <div class="scard-title"><i class='bx bxs-lock-alt'></i> Ganti Password</div>
+            <div class="scard-sub">Masukkan password baru minimal 8 karakter</div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Password Baru</label>
+              <div style="position:relative;">
+                <input type="password" id="passNew" placeholder="Minimal 8 karakter" style="padding-right:44px;" />
+                <span onclick="togglePassView('passNew',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:#aaa;font-size:20px;"><i class='bx bx-hide'></i></span>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Konfirmasi Password Baru</label>
+              <div style="position:relative;">
+                <input type="password" id="passConfirm" placeholder="Ulangi password baru" style="padding-right:44px;" />
+                <span onclick="togglePassView('passConfirm',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:#aaa;font-size:20px;"><i class='bx bx-hide'></i></span>
+              </div>
+            </div>
+            <div id="passMsg" style="font-size:13px;margin-bottom:12px;display:none;"></div>
+            <button class="btn btn-primary" onclick="gantiPassword()"><i class='bx bx-key'></i> Ganti Password</button>
+          </div>
+          <div class="scard admin-only" style="border:1.5px solid #fee2e2;display:none;">
+            <div class="scard-title" style="color:#dc2626;"><i class='bx bxs-error-circle'></i> Zona Berbahaya</div>
+            <div class="scard-sub">Tindakan di bawah ini tidak dapat dibatalkan</div>
+            <button class="btn btn-danger" onclick="if(confirm('Yakin hapus semua data? Tidak dapat dibatalkan!'))showToast('Fitur ini membutuhkan konfirmasi tambahan dari Supabase.','error')">
+              <i class='bx bx-trash'></i> Reset Semua Data (BERBAHAYA)
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /settings-content -->
+    </div>
+
+    <footer>&copy; 2026 EasyCar – Rental Kendaraan. All rights reserved.</footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../services/supabase.js"></script>
+  <script>
+    const SETTINGS_KEY = 'easycar_settings';
+    let _currentUser = null;
+
+    // ===== INIT: Buka untuk semua user (bukan hanya admin) =====
+    (async () => {
+      // requireLogin() redirect ke index jika tidak login
+      _currentUser = await requireLogin();
+      if (!_currentUser) return;
+      document.body.style.visibility = 'visible';
+      renderSidebar(_currentUser);
+      loadSettings(_currentUser);
+
+      const isAdmin = _currentUser.role === 'admin';
+      // Tampilkan panel & nav admin-only hanya untuk admin
+      document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = isAdmin ? (el.classList.contains('snav-item') ? 'flex' : 'block') : 'none';
+      });
+
+      // Set panel awal: akun (untuk semua)
+      showPanel('akun', document.getElementById('snav-akun'));
+
+      // Apply saved theme on load
+      applyThemeFromStorage();
+    })();
+
+    function loadSettings(user) {
+      if (!user) return;
+      document.getElementById('adminNama').value = user.full_name || '';
+      document.getElementById('adminEmail').value = user.email || '';
+      document.getElementById('adminPhone').value = user.phone || '';
+
+      // Load saved tema ke color picker
+      const cfg = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      if (cfg.tampilan) {
+        if (cfg.tampilan.colorPrimary) document.getElementById('colorPrimary').value = cfg.tampilan.colorPrimary;
+        if (cfg.tampilan.colorAccent) document.getElementById('colorAccent').value = cfg.tampilan.colorAccent;
+        if (cfg.tampilan.font) document.getElementById('fontWeb').value = cfg.tampilan.font;
+        if (cfg.tampilan.bahasa) document.getElementById('bahasa').value = cfg.tampilan.bahasa;
+        if (cfg.tampilan.darkMode) document.getElementById('darkModeToggle').checked = cfg.tampilan.darkMode;
+      }
+      previewTheme();
+    }
+
+    function showPanel(id, el) {
+      document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.snav-item').forEach(n => n.classList.remove('active'));
+      const panel = document.getElementById('panel-' + id);
+      if (panel) panel.classList.add('active');
+      if (el) el.classList.add('active');
+    }
+
+    // ===== TEMA: Live Preview =====
+    function previewTheme() {
+      const primary = document.getElementById('colorPrimary').value;
+      const accent = document.getElementById('colorAccent').value;
+      document.getElementById('prevSidebar').style.background = primary;
+      document.getElementById('prevAccent').style.background = accent;
+      document.getElementById('prevBtn').style.background = accent;
+      // Live preview CSS vars di halaman ini
+      document.documentElement.style.setProperty('--primary', primary);
+      document.documentElement.style.setProperty('--accent', accent);
+    }
+
+    function toggleDarkMode(enabled) {
+      if (enabled) {
+        document.documentElement.style.setProperty('--bg', '#1a1f2e');
+        document.body.style.background = '#1a1f2e';
+        document.body.style.color = '#e0e0e0';
+      } else {
+        document.documentElement.style.setProperty('--bg', '#f0f4f8');
+        document.body.style.background = '';
+        document.body.style.color = '';
+      }
+    }
+
+    function simpanTampilan() {
+      const cfg = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      cfg.tampilan = {
+        colorPrimary: document.getElementById('colorPrimary').value,
+        colorAccent: document.getElementById('colorAccent').value,
+        font: document.getElementById('fontWeb').value,
+        bahasa: document.getElementById('bahasa').value,
+        darkMode: document.getElementById('darkModeToggle').checked
+      };
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(cfg));
+      showToast('✅ Tema berhasil disimpan! Akan diterapkan di semua halaman.');
+    }
+
+    function resetTema() {
+      document.getElementById('colorPrimary').value = '#1a3c6e';
+      document.getElementById('colorAccent').value = '#e85d04';
+      document.getElementById('darkModeToggle').checked = false;
+      document.getElementById('fontWeb').value = 'Poppins';
+      previewTheme();
+      toggleDarkMode(false);
+      const cfg = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      delete cfg.tampilan;
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(cfg));
+      showToast('Tema direset ke default.');
+    }
+
+    function applyThemeFromStorage() {
+      const cfg = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      if (!cfg.tampilan) return;
+      const { colorPrimary, colorAccent, darkMode } = cfg.tampilan;
+      if (colorPrimary) document.documentElement.style.setProperty('--primary', colorPrimary);
+      if (colorAccent) document.documentElement.style.setProperty('--accent', colorAccent);
+      if (darkMode) toggleDarkMode(true);
+    }
+
+    // ===== SIMPAN (admin panels) =====
+    function simpan(section) {
+      const cfg = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      if (section === 'bisnis') {
+        cfg.bisnis = {
+          nama: document.getElementById('bisnisNama').value,
+          tagline: document.getElementById('bisnisTagline').value,
+          wa: document.getElementById('bisnisWA').value,
+          email: document.getElementById('bisnisEmail').value,
+          kota: document.getElementById('bisnisKota').value,
+          jam: document.getElementById('bisnisJam').value,
+          alamat: document.getElementById('bisnisAlamat').value
+        };
+      } else if (section === 'denda') {
+        cfg.denda = {
+          d1: document.getElementById('denda1').value,
+          d2: document.getElementById('denda2').value,
+          d3: document.getElementById('denda3').value,
+          etilang: document.getElementById('depositETilang').value,
+          bersih: document.getElementById('biayaBersih').value,
+          bbm: document.getElementById('biayaBBM').value,
+          dpPersen: document.getElementById('dpPersen').value
+        };
+      } else if (section === 'pembayaran') {
+        cfg.pembayaran = {
+          bank: document.getElementById('bankNama').value,
+          noRek: document.getElementById('noRek').value,
+          atasNama: document.getElementById('atasNama').value
+        };
+      } else if (section === 'notif') {
+        cfg.notif = { waAdmin: document.getElementById('waAdmin').value };
+      }
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(cfg));
+      showToast('Pengaturan berhasil disimpan! ✓');
+    }
+
+    // ===== UPDATE PROFIL =====
+    async function updateProfil() {
+      const nama = document.getElementById('adminNama').value.trim();
+      const phone = document.getElementById('adminPhone').value.trim();
+      if (!nama) { showToast('Nama tidak boleh kosong!', 'error'); return; }
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) return;
+      const { error } = await window.supabaseClient
+        .from('profiles')
+        .update({ full_name: nama, phone: phone })
+        .eq('id', session.user.id);
+      if (error) { showToast('Gagal update: ' + error.message, 'error'); return; }
+      showToast('✅ Profil berhasil diperbarui!');
+    }
+
+    // ===== GANTI PASSWORD =====
+    async function gantiPassword() {
+      const passNew = document.getElementById('passNew').value;
+      const passConfirm = document.getElementById('passConfirm').value;
+      const msgEl = document.getElementById('passMsg');
+      msgEl.style.display = 'none';
+
+      if (passNew.length < 8) {
+        msgEl.textContent = '⚠️ Password minimal 8 karakter!';
+        msgEl.style.color = '#e85d04';
+        msgEl.style.display = 'block';
+        return;
+      }
+      if (passNew !== passConfirm) {
+        msgEl.textContent = '⚠️ Password dan konfirmasi tidak cocok!';
+        msgEl.style.color = '#e85d04';
+        msgEl.style.display = 'block';
+        return;
+      }
+      const { error } = await window.supabaseClient.auth.updateUser({ password: passNew });
+      if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+      showToast('✅ Password berhasil diubah!');
+      document.getElementById('passNew').value = '';
+      document.getElementById('passConfirm').value = '';
+    }
+
+    // ===== TOGGLE PASSWORD VISIBILITY =====
+    function togglePassView(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bx bx-show';
+        btn.style.color = 'var(--light-blue)';
+      } else {
+        input.type = 'password';
+        icon.className = 'bx bx-hide';
+        btn.style.color = '#aaa';
+      }
+    }
+
+    // ===== TOAST =====
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.background = type === 'error' ? '#ef4444' : '#22c55e';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3200);
+    }
+  </script>
+
+  <script>
+function renderSidebar(user) {
+  if (!user) return;
+  const isAdmin = user.role === 'admin';
+  const initial = user.full_name ? user.full_name[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'U');
+  const nameEl = document.getElementById('sidebarUserName');
+  const roleEl = document.getElementById('sidebarUserRole');
+  const avatarEl = document.getElementById('sidebarAvatar');
+  if (nameEl) nameEl.textContent = user.full_name || user.email || 'User';
+  if (roleEl) roleEl.textContent = isAdmin ? 'Super Admin' : 'Pelanggan';
+  if (avatarEl) avatarEl.textContent = initial;
+  document.querySelectorAll('[data-role="admin"]').forEach(el => {
+    const isNavItem = el.classList.contains('nav-item');
+    el.style.display = isAdmin ? (isNavItem ? 'flex' : 'block') : 'none';
+  });
+}
+</script>
+
+  <script>
+  // ===== HAMBURGER SIDEBAR TOGGLE =====
+  (function() {
+    var btn = document.getElementById('hamburgerBtn');
+    var sidebar = document.querySelector('.sidebar');
+    var overlay = document.getElementById('sidebarOverlay');
+    if (!btn || !sidebar) return;
+    function openSidebar() {
+      sidebar.classList.add('open');
+      if (overlay) { overlay.style.display = 'block'; setTimeout(function(){ overlay.style.opacity = '1'; }, 10); }
+      btn.innerHTML = "<i class='bx bx-x'></i>";
+    }
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      if (overlay) { overlay.style.opacity = '0'; setTimeout(function(){ overlay.style.display = 'none'; }, 300); }
+      btn.innerHTML = "<i class='bx bx-menu'></i>";
+    }
+    btn.addEventListener('click', function() {
+      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+    // Tutup sidebar jika resize ke desktop
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768) closeSidebar();
+    });
+  })();
+  </script>
+</body>
+</html>

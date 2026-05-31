@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyCar — Kendaraan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/shared.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { poppins: ['Poppins', 'sans-serif'] },
+          colors: { primary: { DEFAULT: '#1a3c6e', dark: '#0f2347' }, accent: { DEFAULT: '#e85d04', light: '#ff7733' } }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; visibility: hidden; }
+    body.loaded { visibility: visible; }
+    .vehicle-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .vehicle-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.1); }
+    .filter-tab.active { background: #1a3c6e; color: #fff; border-color: #1a3c6e; }
+    .sidebar-link.active-page { color:#fff!important; border-left-color:#e85d04!important; background:rgba(232,93,4,0.1)!important; }
+    input[type="text"],input[type="number"],select,textarea { width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;outline:none;transition:border-color .2s; }
+    input:focus,select:focus,textarea:focus { border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+    label { font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;display:block; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Modal Tambah/Edit Kendaraan -->
+  <div id="modalKendaraan" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+        <h3 id="modalKendaraanTitle" class="font-bold text-primary text-lg">Tambah Kendaraan</h3>
+        <button onclick="closeModalKendaraan()" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center">
+          <i class='bx bx-x text-2xl'></i>
+        </button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div id="modalKendaraanError" class="hidden p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label>Nama Kendaraan *</label><input id="kNama" placeholder="Cth: Avanza" /></div>
+          <div><label>Merek *</label><input id="kMerk" placeholder="Cth: Toyota" /></div>
+          <div>
+            <label>Tipe *</label>
+            <select id="kTipe">
+              <option value="">— Pilih —</option>
+              <option>MPV</option><option>SUV</option><option>Sedan</option>
+              <option>Hatchback</option><option>Van</option><option>Pickup</option><option>Bus</option><option>Motor</option>
+            </select>
+          </div>
+          <div><label>Tahun *</label><input type="number" id="kTahun" placeholder="2020" min="2000" max="2030" /></div>
+          <div><label>Plat Nomor *</label><input id="kPlat" placeholder="BK 1234 AB" /></div>
+          <div><label>Kapasitas (org) *</label><input type="number" id="kKapasitas" placeholder="7" min="1" max="50" /></div>
+          <div>
+            <label>Transmisi *</label>
+            <select id="kTransmisi"><option value="">— Pilih —</option><option>Automatic</option><option>Manual</option></select>
+          </div>
+          <div>
+            <label>Bahan Bakar *</label>
+            <select id="kBahanBakar"><option value="">— Pilih —</option><option>Bensin</option><option>Solar</option><option>Listrik</option></select>
+          </div>
+          <div><label>Harga/hari (Rp) *</label><input type="number" id="kHarga" placeholder="350000" /></div>
+          <div>
+            <label>Status *</label>
+            <select id="kStatus"><option>Tersedia</option><option>Disewa</option><option>Perawatan</option></select>
+          </div>
+          <div class="col-span-2"><label>URL Foto</label><input id="kFoto" placeholder="https://... (opsional)" /></div>
+          <div class="col-span-2">
+            <label>Deskripsi</label>
+            <textarea id="kDeskripsi" rows="2" placeholder="Deskripsi singkat kendaraan..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 pb-6 flex gap-3">
+        <button onclick="closeModalKendaraan()" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">Batal</button>
+        <button id="btnSimpanKendaraan" onclick="simpanKendaraan()" class="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="lg:ml-64 flex flex-col min-h-screen">
+    <header class="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-100 px-4 lg:px-8 py-4">
+      <div class="pl-12 lg:pl-0 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-primary">Kendaraan</h2>
+          <p class="text-xs text-gray-400" id="totalKendaraanText">Memuat data...</p>
+        </div>
+        <button id="btnTambahKendaraan" onclick="openModalTambah()" class="hidden bg-primary text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 hover:bg-primary-dark transition-colors">
+          <i class='bx bx-plus'></i> Tambah Kendaraan
+        </button>
+      </div>
+    </header>
+
+    <main class="p-4 lg:p-8 flex-1 fade-in">
+      <!-- Filter & Search -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm mb-6 flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-wrap">
+        <div class="flex flex-wrap gap-2 flex-1">
+          <button class="filter-tab active text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors" data-filter="Semua">Semua</button>
+          <button class="filter-tab text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors" data-filter="SUV">SUV</button>
+          <button class="filter-tab text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors" data-filter="Mobil">MPV / Mobil</button>
+          <button class="filter-tab text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors" data-filter="Van / MPV">Van / MPV</button>
+          <button class="filter-tab text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors" data-filter="Motor">Motor</button>
+        </div>
+        <div class="flex gap-2 items-center">
+          <select id="sortKendaraan" onchange="renderGrid()" class="!w-auto !py-2 text-xs">
+            <option value="">Urutkan Default</option>
+            <option value="asc">Harga Terendah</option>
+            <option value="desc">Harga Tertinggi</option>
+          </select>
+          <input type="text" id="searchKendaraan" oninput="renderGrid()" placeholder="Cari kendaraan..." class="!w-40 !py-2 text-xs" />
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div id="kendaraanGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div class="col-span-full flex flex-col items-center justify-center py-16 text-gray-400">
+          <i class='bx bx-loader-alt text-5xl animate-spin mb-3'></i>
+          <p>Memuat kendaraan...</p>
+        </div>
+      </div>
+    </main>
+    <footer class="text-center text-gray-400 text-xs py-5">&copy; 2026 EasyCar</footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../services/supabase.js"></script>
+  <script src="../components/sidebar.js"></script>
+  <script src="../utils/ui.js"></script>
+  <script>
+    let allKendaraan = [], currentUser = null, editingId = null;
+    let filterActive = 'Semua';
+
+    (async () => {
+      initSidebar('kendaraan.html');
+      document.querySelectorAll('.sidebar-link').forEach(l => {
+        if (l.href.includes('kendaraan.html')) l.classList.add('active-page');
+      });
+      currentUser = await requireLogin();
+      if (!currentUser) return;
+      renderSidebarUser(currentUser);
+
+      if (currentUser.role === 'admin') {
+        document.getElementById('btnTambahKendaraan').classList.remove('hidden');
+        document.getElementById('btnTambahKendaraan').classList.add('flex');
+      }
+      document.body.classList.add('loaded');
+      await loadKendaraan();
+
+      // Filter tabs
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          filterActive = tab.dataset.filter;
+          renderGrid();
+        });
+      });
+    })();
+
+    async function loadKendaraan() {
+      const grid = document.getElementById('kendaraanGrid');
+      grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center py-16 text-gray-400"><i class='bx bx-loader-alt text-5xl animate-spin mb-3'></i><p>Memuat kendaraan...</p></div>`;
+      document.getElementById('totalKendaraanText').textContent = 'Memuat...';
+
+      const { data, error } = await supabase.from('kendaraan').select('*').order('created_at', { ascending: false });
+      if (error) { showToast('Gagal memuat: ' + error.message, 'error'); return; }
+      allKendaraan = data || [];
+
+      const { data: activeBookings } = await supabase.from('pemesanan').select('kendaraan_id').in('status', ['Aktif','Terlambat']);
+      window._activeCarIds = new Set((activeBookings || []).map(b => b.kendaraan_id));
+
+      document.getElementById('totalKendaraanText').textContent = `Total ${allKendaraan.length} unit kendaraan terdaftar`;
+      renderGrid();
+    }
+
+    function renderGrid() {
+      const searchVal = (document.getElementById('searchKendaraan').value || '').toLowerCase();
+      const sortVal = document.getElementById('sortKendaraan').value;
+      const isAdmin = currentUser?.role === 'admin';
+      const activeCarIds = window._activeCarIds || new Set();
+
+      let data = allKendaraan.filter(k => {
+        const matchFilter = filterActive === 'Semua' ||
+          (filterActive === 'Mobil' && ['MPV','Sedan','Hatchback'].includes(k.tipe)) ||
+          (filterActive === 'SUV' && k.tipe === 'SUV') ||
+          (filterActive === 'Van / MPV' && ['Van','Bus','MPV'].includes(k.tipe)) ||
+          (filterActive === 'Motor' && k.tipe === 'Motor');
+        const matchSearch = !searchVal || k.nama.toLowerCase().includes(searchVal) || k.merk.toLowerCase().includes(searchVal);
+        return matchFilter && matchSearch;
+      });
+      if (sortVal === 'asc') data.sort((a,b) => a.harga_per_hari - b.harga_per_hari);
+      if (sortVal === 'desc') data.sort((a,b) => b.harga_per_hari - a.harga_per_hari);
+
+      const grid = document.getElementById('kendaraanGrid');
+      if (data.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-16">Tidak ada kendaraan ditemukan.</div>`;
+        return;
+      }
+
+      grid.innerHTML = data.map(k => {
+        const isPerawatan = ['Perawatan','Tidak Aktif'].includes(k.status);
+        const isDisewa = !isPerawatan && activeCarIds.has(k.id);
+        const badgeLabel = isPerawatan ? k.status : (isDisewa ? 'Disewa' : 'Tersedia');
+        const badgeCls = isPerawatan ? 'bg-red-100 text-red-600' : (isDisewa ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700');
+        const bisa = !isPerawatan && !isDisewa;
+
+        return `
+          <div class="vehicle-card bg-white rounded-2xl overflow-hidden shadow-sm border border-transparent hover:border-indigo-100">
+            <div class="relative h-44 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center overflow-hidden">
+              ${k.foto_url
+                ? `<img src="${k.foto_url}" alt="${k.nama}" class="w-4/5 h-full object-contain" onerror="this.style.display='none'">`
+                : `<i class='bx bxs-car text-8xl text-indigo-200'></i>`}
+              <span class="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${badgeCls}">${badgeLabel}</span>
+              ${isAdmin ? `
+              <div class="absolute top-3 right-3 flex gap-1.5">
+                <button onclick="openModalEdit(${k.id},event)" class="w-7 h-7 bg-primary text-white rounded-lg flex items-center justify-center text-xs hover:bg-primary-dark transition-colors" title="Edit">
+                  <i class='bx bx-edit'></i>
+                </button>
+                <button onclick="confirmHapus(${k.id},'${k.nama.replace(/'/g,"\\'")}',event)" class="w-7 h-7 bg-red-500 text-white rounded-lg flex items-center justify-center text-xs hover:bg-red-600 transition-colors" title="Hapus">
+                  <i class='bx bx-trash'></i>
+                </button>
+              </div>` : ''}
+            </div>
+            <div class="p-4">
+              <p class="text-xs text-gray-400 font-medium">${k.merk}</p>
+              <h4 class="font-bold text-primary text-base mb-2">${k.nama}</h4>
+              <div class="flex items-center gap-3 text-xs text-gray-500 mb-3">
+                <span class="flex items-center gap-1"><i class='bx bx-user'></i>${k.kapasitas} org</span>
+                <span class="flex items-center gap-1"><i class='bx bx-trip'></i>${k.transmisi}</span>
+                <span class="flex items-center gap-1"><i class='bx bx-gas-station'></i>${k.bahan_bakar}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xl font-black text-primary">Rp ${Math.round(k.harga_per_hari/1000)}rb</span>
+                  <span class="text-xs text-gray-400">/hari</span>
+                </div>
+                <button onclick="sewaKendaraan(${k.id})"
+                  class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${bisa ? 'bg-accent text-white hover:bg-accent-light' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}"
+                  ${!bisa ? 'disabled' : ''}>
+                  ${bisa ? 'Sewa Sekarang' : badgeLabel}
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function sewaKendaraan(id) { window.location.href = `booking.html?kendaraan=${id}`; }
+
+    function openModalTambah() {
+      editingId = null;
+      document.getElementById('modalKendaraanTitle').textContent = 'Tambah Kendaraan Baru';
+      ['kNama','kMerk','kTipe','kTahun','kPlat','kKapasitas','kTransmisi','kBahanBakar','kHarga','kFoto','kDeskripsi'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('kStatus').value = 'Tersedia';
+      document.getElementById('modalKendaraanError').classList.add('hidden');
+      document.getElementById('modalKendaraan').classList.remove('hidden');
+    }
+
+    function openModalEdit(id, event) {
+      if (event) event.stopPropagation();
+      const k = allKendaraan.find(x => x.id === id);
+      if (!k) return;
+      editingId = id;
+      document.getElementById('modalKendaraanTitle').textContent = 'Edit Kendaraan';
+      document.getElementById('kNama').value = k.nama;
+      document.getElementById('kMerk').value = k.merk;
+      document.getElementById('kTipe').value = k.tipe;
+      document.getElementById('kTahun').value = k.tahun;
+      document.getElementById('kPlat').value = k.plat_nomor;
+      document.getElementById('kKapasitas').value = k.kapasitas;
+      document.getElementById('kTransmisi').value = k.transmisi;
+      document.getElementById('kBahanBakar').value = k.bahan_bakar;
+      document.getElementById('kHarga').value = k.harga_per_hari;
+      document.getElementById('kStatus').value = k.status;
+      document.getElementById('kFoto').value = k.foto_url || '';
+      document.getElementById('kDeskripsi').value = k.deskripsi || '';
+      document.getElementById('modalKendaraanError').classList.add('hidden');
+      document.getElementById('modalKendaraan').classList.remove('hidden');
+    }
+
+    function closeModalKendaraan() { document.getElementById('modalKendaraan').classList.add('hidden'); }
+
+    async function simpanKendaraan() {
+      const errEl = document.getElementById('modalKendaraanError');
+      const nama = document.getElementById('kNama').value.trim();
+      const merk = document.getElementById('kMerk').value.trim();
+      const tipe = document.getElementById('kTipe').value;
+      const tahun = parseInt(document.getElementById('kTahun').value);
+      const plat = document.getElementById('kPlat').value.trim();
+      const kapasitas = parseInt(document.getElementById('kKapasitas').value);
+      const transmisi = document.getElementById('kTransmisi').value;
+      const bahan_bakar = document.getElementById('kBahanBakar').value;
+      const harga = parseFloat(document.getElementById('kHarga').value);
+      const status = document.getElementById('kStatus').value;
+      const foto_url = document.getElementById('kFoto').value.trim() || null;
+      const deskripsi = document.getElementById('kDeskripsi').value.trim() || null;
+
+      if (!nama || !merk || !tipe || !tahun || !plat || !kapasitas || !transmisi || !bahan_bakar || !harga) {
+        errEl.textContent = '⚠️ Lengkapi semua field wajib.';
+        errEl.classList.remove('hidden'); return;
+      }
+      errEl.classList.add('hidden');
+      const btn = document.getElementById('btnSimpanKendaraan');
+      setButtonLoading(btn, true);
+
+      const payload = { nama, merk, tipe, tahun, plat_nomor: plat, kapasitas, transmisi, bahan_bakar, harga_per_hari: harga, status, foto_url, deskripsi };
+      let error;
+      if (editingId) {
+        ({ error } = await supabase.from('kendaraan').update(payload).eq('id', editingId));
+      } else {
+        ({ error } = await supabase.from('kendaraan').insert(payload));
+      }
+      setButtonLoading(btn, false, 'Simpan');
+
+      if (error) {
+        errEl.textContent = 'Gagal: ' + (error.message.includes('plat_nomor') ? 'Plat nomor sudah terdaftar.' : error.message);
+        errEl.classList.remove('hidden'); return;
+      }
+      closeModalKendaraan();
+      showToast(editingId ? 'Kendaraan berhasil diupdate!' : 'Kendaraan berhasil ditambahkan!', 'success');
+      await loadKendaraan();
+    }
+
+    function confirmHapus(id, nama, event) {
+      if (event) event.stopPropagation();
+      showModal({
+        title: 'Hapus Kendaraan',
+        message: `Yakin ingin menghapus <strong>${nama}</strong>? Data tidak bisa dipulihkan.`,
+        confirmText: 'Ya, Hapus',
+        cancelText: 'Batal',
+        type: 'danger'
+      }).then(async (confirmed) => {
+        if (!confirmed) return;
+        const { error } = await supabase.from('kendaraan').delete().eq('id', id);
+        if (error) { showToast('Gagal hapus: ' + error.message, 'error'); return; }
+        showToast('Kendaraan berhasil dihapus.', 'success');
+        await loadKendaraan();
+      });
+    }
+
+    document.getElementById('modalKendaraan').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeModalKendaraan();
+    });
+  </script>
+</body>
+</html>

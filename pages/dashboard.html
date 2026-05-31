@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyCar — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/shared.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { poppins: ['Poppins', 'sans-serif'] },
+          colors: {
+            primary: { DEFAULT: '#1a3c6e', dark: '#0f2347' },
+            accent: { DEFAULT: '#e85d04', light: '#ff7733' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; visibility: hidden; }
+    body.loaded { visibility: visible; }
+    .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+    .sidebar-link.active-page { color: #fff !important; border-left-color: #e85d04 !important; background: rgba(232,93,4,0.1) !important; }
+    .vehicle-card { transition: transform 0.25s, box-shadow 0.25s; }
+    .vehicle-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Sidebar & hamburger injected by sidebar.js -->
+
+  <!-- MAIN WRAPPER -->
+  <div class="lg:ml-64 flex flex-col min-h-screen">
+
+    <!-- TOPBAR -->
+    <header class="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-100 px-4 lg:px-8 py-4 flex items-center justify-between">
+      <div class="pl-12 lg:pl-0">
+        <h2 class="text-lg font-bold text-primary">Dashboard</h2>
+        <p class="text-xs text-gray-400" id="topbarDate">—</p>
+      </div>
+      <div class="flex items-center gap-3 relative">
+        <!-- Notif -->
+        <button id="notifBtn" onclick="toggleNotifPanel()" class="relative w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors">
+          <i class='bx bx-bell text-gray-500 text-xl'></i>
+          <span id="notifBadge" class="hidden absolute top-2 right-2 w-2 h-2 bg-accent rounded-full"></span>
+        </button>
+        <!-- Notif Panel -->
+        <div id="notifPanel" class="hidden absolute right-0 top-14 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <span class="font-bold text-gray-800 text-sm">Notifikasi</span>
+            <button onclick="markAllRead()" class="text-xs text-indigo-600 font-semibold hover:underline">Tandai semua dibaca</button>
+          </div>
+          <div id="notifList" class="max-h-72 overflow-y-auto">
+            <div class="text-center text-gray-400 text-sm py-8">Tidak ada notifikasi</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="p-4 lg:p-8 flex-1 fade-in">
+
+      <!-- Welcome Banner -->
+      <div class="bg-gradient-to-r from-primary-dark to-primary rounded-2xl p-6 mb-6 flex items-center justify-between overflow-hidden relative">
+        <div class="absolute right-0 top-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4"></div>
+        <div class="absolute right-16 bottom-0 w-24 h-24 bg-accent/20 rounded-full translate-y-1/2"></div>
+        <div class="relative z-10">
+          <p class="text-white/70 text-sm mb-1">Selamat datang kembali,</p>
+          <h3 id="welcomeName" class="text-white font-bold text-2xl">Admin</h3>
+          <p class="text-white/60 text-xs mt-1">Kelola armada dan transaksi rental kendaraan Anda</p>
+        </div>
+        <div class="hidden md:flex items-center gap-3 relative z-10">
+          <a href="booking.html" class="bg-accent hover:bg-accent-light text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2">
+            <i class='bx bx-plus'></i> Pemesanan Baru
+          </a>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card bg-white rounded-2xl p-5 shadow-sm">
+          <div class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
+            <i class='bx bxs-car text-blue-500 text-2xl'></i>
+          </div>
+          <p class="text-gray-400 text-xs font-medium">Total Kendaraan</p>
+          <p id="statKendaraan" class="text-3xl font-bold text-primary mt-1">—</p>
+          <p class="text-xs text-gray-400 mt-1">Unit armada aktif</p>
+        </div>
+        <div class="stat-card bg-white rounded-2xl p-5 shadow-sm">
+          <div class="w-11 h-11 bg-orange-50 rounded-xl flex items-center justify-center mb-4">
+            <i class='bx bxs-calendar-check text-accent text-2xl'></i>
+          </div>
+          <p class="text-gray-400 text-xs font-medium">Total Pemesanan</p>
+          <p id="statPemesanan" class="text-3xl font-bold text-primary mt-1">—</p>
+          <p class="text-xs text-gray-400 mt-1">Transaksi tercatat</p>
+        </div>
+        <div class="stat-card bg-white rounded-2xl p-5 shadow-sm">
+          <div class="w-11 h-11 bg-emerald-50 rounded-xl flex items-center justify-center mb-4">
+            <i class='bx bxs-user-check text-emerald-500 text-2xl'></i>
+          </div>
+          <p class="text-gray-400 text-xs font-medium">Pelanggan Aktif</p>
+          <p id="statPelanggan" class="text-3xl font-bold text-primary mt-1">—</p>
+          <p class="text-xs text-gray-400 mt-1">Pengguna terdaftar</p>
+        </div>
+        <div class="stat-card bg-white rounded-2xl p-5 shadow-sm">
+          <div class="w-11 h-11 bg-purple-50 rounded-xl flex items-center justify-center mb-4">
+            <i class='bx bxs-wallet text-purple-500 text-2xl'></i>
+          </div>
+          <p class="text-gray-400 text-xs font-medium">Total Pendapatan</p>
+          <p id="statPendapatan" class="text-xl font-bold text-primary mt-1">—</p>
+          <p class="text-xs text-gray-400 mt-1">Dari transaksi lunas</p>
+        </div>
+      </div>
+
+      <!-- TWO COLUMN -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+        <!-- Recent Bookings -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-6 py-5 border-b border-gray-50">
+            <h3 class="font-bold text-primary text-base">Pemesanan Terbaru</h3>
+            <a href="admin.html" class="text-xs text-indigo-600 font-semibold hover:underline">Lihat semua →</a>
+          </div>
+          <div class="table-wrap">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-gray-50">
+                  <th class="text-left px-5 py-3 text-gray-400 text-xs font-semibold uppercase tracking-wide">Kode</th>
+                  <th class="text-left px-5 py-3 text-gray-400 text-xs font-semibold uppercase tracking-wide">Pemesan</th>
+                  <th class="text-left px-5 py-3 text-gray-400 text-xs font-semibold uppercase tracking-wide">Kendaraan</th>
+                  <th class="text-left px-5 py-3 text-gray-400 text-xs font-semibold uppercase tracking-wide">Status</th>
+                </tr>
+              </thead>
+              <tbody id="dashBookingBody">
+                <tr><td colspan="4" class="text-center text-gray-400 py-8 text-sm">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Kendaraan Tersedia -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-6 py-5 border-b border-gray-50">
+            <h3 class="font-bold text-primary text-base">Kendaraan Tersedia</h3>
+            <a href="kendaraan.html" class="text-xs text-indigo-600 font-semibold hover:underline">Lihat semua →</a>
+          </div>
+          <div id="dashVehicleGrid" class="p-5 grid gap-3">
+            <div class="text-center text-gray-400 py-8 text-sm">Memuat data...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Actions (Admin) -->
+      <div class="bg-white rounded-2xl shadow-sm p-6" data-role="admin">
+        <h3 class="font-bold text-primary text-base mb-4">Aksi Cepat</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <a href="kendaraan.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors text-center">
+            <i class='bx bxs-car text-blue-500 text-2xl'></i>
+            <span class="text-xs font-semibold text-blue-700">Tambah Kendaraan</span>
+          </a>
+          <a href="promo.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-orange-50 hover:bg-orange-100 transition-colors text-center">
+            <i class='bx bxs-tag text-accent text-2xl'></i>
+            <span class="text-xs font-semibold text-orange-700">Kelola Promo</span>
+          </a>
+          <a href="laporan.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 transition-colors text-center">
+            <i class='bx bxs-bar-chart-alt-2 text-emerald-500 text-2xl'></i>
+            <span class="text-xs font-semibold text-emerald-700">Lihat Laporan</span>
+          </a>
+          <a href="admin.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-purple-50 hover:bg-purple-100 transition-colors text-center">
+            <i class='bx bxs-user-account text-purple-500 text-2xl'></i>
+            <span class="text-xs font-semibold text-purple-700">Manajemen User</span>
+          </a>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="text-center text-gray-400 text-xs py-5">&copy; 2026 EasyCar — Rental Kendaraan</footer>
+  </div>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../services/supabase.js"></script>
+  <script src="../components/sidebar.js"></script>
+  <script src="../utils/ui.js"></script>
+
+  <script>
+    // ─── INIT ───
+    (async () => {
+      initSidebar('dashboard.html');
+      const user = await requireAdmin();
+      if (!user) return;
+
+      // Update UI
+      renderSidebarUser(user);
+      const welcomeEl = document.getElementById('welcomeName');
+      if (welcomeEl) welcomeEl.textContent = user.full_name || user.email || 'Admin';
+
+      // Active sidebar link
+      document.querySelectorAll('.sidebar-link').forEach(l => {
+        if (l.href.includes('dashboard.html')) l.classList.add('active-page');
+      });
+
+      // Date
+      const dateEl = document.getElementById('topbarDate');
+      if (dateEl) dateEl.textContent = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+      document.body.classList.add('loaded');
+      await loadStats();
+      loadDashboardNotifs();
+    })();
+
+    // ─── STATS ───
+    async function loadStats() {
+      try {
+        const [
+          { count: totalKendaraan },
+          { count: totalPemesanan },
+          { count: totalUser },
+          { data: aktif }
+        ] = await Promise.all([
+          window.supabaseClient.from('kendaraan').select('*', { count: 'exact', head: true }),
+          window.supabaseClient.from('pemesanan').select('*', { count: 'exact', head: true }),
+          window.supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user'),
+          window.supabaseClient.from('pemesanan').select('total_harga').eq('status_pembayaran', 'Lunas')
+        ]);
+        const totalPendapatan = aktif?.reduce((s, r) => s + Number(r.total_harga), 0) || 0;
+        const els = {
+          statKendaraan: totalKendaraan ?? 0,
+          statPemesanan: totalPemesanan ?? 0,
+          statPelanggan: totalUser ?? 0,
+          statPendapatan: formatRupiah(totalPendapatan)
+        };
+        Object.entries(els).forEach(([id, val]) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        });
+        loadDashVehicles();
+        loadDashBookings();
+      } catch(e) {
+        console.error('loadStats error:', e);
+        showToast('Gagal memuat statistik', 'error');
+      }
+    }
+
+    // ─── KENDARAAN ───
+    async function loadDashVehicles() {
+      const grid = document.getElementById('dashVehicleGrid');
+      if (!grid) return;
+      try {
+        const { data } = await window.supabaseClient.from('kendaraan').select('*').eq('status','Tersedia').limit(3);
+        if (!data || data.length === 0) {
+          grid.innerHTML = '<div class="text-center text-gray-400 py-6 text-sm">Tidak ada kendaraan tersedia.</div>';
+          return;
+        }
+        grid.innerHTML = data.map(k => `
+          <div class="vehicle-card flex items-center gap-4 p-3 rounded-xl border border-gray-100 hover:border-indigo-200 cursor-pointer" onclick="window.location.href='kendaraan.html'">
+            <div class="w-16 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+              ${k.foto_url
+                ? `<img src="${k.foto_url}" alt="${k.nama}" class="w-full h-full object-contain" onerror="this.style.display='none'">`
+                : `<i class='bx bxs-car text-3xl text-blue-300'></i>`}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-gray-400">${k.merk}</p>
+              <p class="font-semibold text-gray-800 text-sm truncate">${k.nama}</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <p class="font-bold text-primary text-sm">${formatRupiah(k.harga_per_hari)}</p>
+              <p class="text-[10px] text-gray-400">/hari</p>
+            </div>
+          </div>
+        `).join('');
+      } catch(e) {
+        grid.innerHTML = '<div class="text-center text-gray-400 py-4 text-sm">Gagal memuat data.</div>';
+      }
+    }
+
+    // ─── BOOKINGS TABLE ───
+    async function loadDashBookings() {
+      const tbody = document.getElementById('dashBookingBody');
+      if (!tbody) return;
+      try {
+        const { data } = await window.supabaseClient
+          .from('pemesanan')
+          .select('kode_booking, nama_pemesan, status, kendaraan:kendaraan_id(nama,merk)')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (!data || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-400 py-8 text-sm">Belum ada data pemesanan.</td></tr>';
+          return;
+        }
+        const statusMap = {
+          'Menunggu':    { bg:'bg-amber-50 text-amber-700', dot:'bg-amber-400' },
+          'Dikonfirmasi':{ bg:'bg-blue-50 text-blue-700',   dot:'bg-blue-400' },
+          'Aktif':       { bg:'bg-emerald-50 text-emerald-700', dot:'bg-emerald-500' },
+          'Selesai':     { bg:'bg-gray-100 text-gray-600',  dot:'bg-gray-400' },
+          'Dibatalkan':  { bg:'bg-red-50 text-red-600',     dot:'bg-red-400' },
+        };
+        tbody.innerHTML = data.map(b => {
+          const s = statusMap[b.status] || statusMap['Menunggu'];
+          return `
+            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+              <td class="px-5 py-3.5 font-mono text-xs text-gray-500">#${b.kode_booking}</td>
+              <td class="px-5 py-3.5 font-medium text-gray-700 text-sm">${b.nama_pemesan}</td>
+              <td class="px-5 py-3.5 text-gray-500 text-sm">${b.kendaraan ? b.kendaraan.merk + ' ' + b.kendaraan.nama : '—'}</td>
+              <td class="px-5 py-3.5">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${s.bg}">
+                  <span class="w-1.5 h-1.5 rounded-full ${s.dot}"></span>
+                  ${b.status}
+                </span>
+              </td>
+            </tr>`;
+        }).join('');
+      } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-red-400 py-6 text-sm">Gagal memuat data.</td></tr>';
+      }
+    }
+
+    // ─── NOTIFIKASI ───
+    const NOTIF_KEY = 'easycar_notif_read';
+    function getReadIds() { try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch(e){ return []; } }
+    function saveReadIds(ids) { localStorage.setItem(NOTIF_KEY, JSON.stringify(ids)); }
+
+    async function loadDashboardNotifs() {
+      const { data: orders } = await supabase.from('pemesanan')
+        .select('id,kode_booking,status,nama_pemesan,created_at')
+        .order('created_at', {ascending:false}).limit(20);
+      if (!orders || orders.length === 0) return;
+      const readIds = getReadIds();
+      window._dashNotifs = orders.filter(o => ['Menunggu','Dikonfirmasi'].includes(o.status)).map(o => ({
+        id: 'order_' + o.id,
+        title: o.status === 'Menunggu' ? '🔔 Pesanan Baru' : '✅ Pesanan Dikonfirmasi',
+        desc: `#${o.kode_booking} — ${o.nama_pemesan}`,
+        time: new Date(o.created_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}),
+        unread: !readIds.includes('order_' + o.id)
+      }));
+      const unreadCount = window._dashNotifs.filter(n => n.unread).length;
+      const badge = document.getElementById('notifBadge');
+      if (badge) badge.classList.toggle('hidden', unreadCount === 0);
+      const list = document.getElementById('notifList');
+      if (list && window._dashNotifs.length > 0) {
+        list.innerHTML = window._dashNotifs.map(n => `
+          <div onclick="markRead('${n.id}')" class="px-5 py-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${n.unread ? 'bg-indigo-50/50' : ''}">
+            <div class="flex items-start gap-2">
+              ${n.unread ? `<span class="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></span>` : `<span class="w-2 h-2 mt-1.5 flex-shrink-0"></span>`}
+              <div>
+                <p class="text-sm font-semibold text-gray-800">${n.title}</p>
+                <p class="text-xs text-gray-500">${n.desc}</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">${n.time}</p>
+              </div>
+            </div>
+          </div>`).join('');
+      }
+    }
+
+    function markRead(id) {
+      const readIds = getReadIds();
+      if (!readIds.includes(id)) { readIds.push(id); saveReadIds(readIds); }
+      if (window._dashNotifs) {
+        const notif = window._dashNotifs.find(n => n.id === id);
+        if (notif) notif.unread = false;
+        const remaining = window._dashNotifs.filter(n => n.unread).length;
+        const badge = document.getElementById('notifBadge');
+        if (badge) badge.classList.toggle('hidden', remaining === 0);
+      }
+      // Update UI item
+      document.querySelectorAll('#notifList > div').forEach(el => {
+        if (el.getAttribute('onclick')?.includes(id)) el.classList.remove('bg-indigo-50/50');
+      });
+    }
+
+    function markAllRead() {
+      const ids = (window._dashNotifs || []).map(n => n.id);
+      saveReadIds(ids);
+      const badge = document.getElementById('notifBadge');
+      if (badge) badge.classList.add('hidden');
+      document.querySelectorAll('#notifList > div').forEach(el => el.classList.remove('bg-indigo-50/50'));
+    }
+
+    function toggleNotifPanel() {
+      const panel = document.getElementById('notifPanel');
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) loadDashboardNotifs();
+    }
+    document.addEventListener('click', e => {
+      const btn = document.getElementById('notifBtn');
+      const panel = document.getElementById('notifPanel');
+      if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) panel.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>

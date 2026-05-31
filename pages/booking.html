@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyCar — Pemesanan Baru</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+  <link rel="stylesheet" href="../assets/css/shared.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { poppins: ['Poppins', 'sans-serif'] },
+          colors: {
+            primary: { DEFAULT: '#1a3c6e', dark: '#0f2347' },
+            accent: { DEFAULT: '#e85d04', light: '#ff7733' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; visibility: hidden; }
+    body.loaded { visibility: visible; }
+    .vehicle-card { transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
+    .vehicle-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.1); }
+    .vehicle-card.selected { border-color: #e85d04 !important; box-shadow: 0 0 0 3px rgba(232,93,4,0.15); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .step-done .step-num { background: #22c55e !important; border-color: #22c55e !important; color: #fff !important; }
+    .step-active .step-num { background: #e85d04 !important; border-color: #e85d04 !important; color: #fff !important; }
+    .payment-method-card { transition: all 0.2s; }
+    .payment-method-card.selected { border-color: #4f46e5; background: #eef2ff; }
+    input[type="text"], input[type="email"], input[type="number"], input[type="tel"], select, textarea {
+      width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+      font-family: 'Poppins', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s;
+      background: white; color: #1e293b;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    label { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; display: block; }
+    .sidebar-link.active-page { color:#fff!important; border-left-color:#e85d04!important; background:rgba(232,93,4,0.1)!important; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- STRUK PRINT (hanya tampil saat print) -->
+  <div id="struk-print" style="display:none;"></div>
+
+  <!-- Sidebar injected by sidebar.js -->
+
+  <div class="lg:ml-64 flex flex-col min-h-screen">
+
+    <!-- TOPBAR -->
+    <header class="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-100 px-4 lg:px-8 py-4">
+      <div class="pl-12 lg:pl-0">
+        <h2 class="text-lg font-bold text-primary">Pemesanan Baru</h2>
+        <p class="text-xs text-gray-400">Lengkapi langkah berikut untuk memesan kendaraan</p>
+      </div>
+    </header>
+
+    <main class="p-4 lg:p-8 flex-1 fade-in">
+
+      <!-- STEP WIZARD -->
+      <div class="bg-white rounded-2xl px-5 py-5 mb-6 shadow-sm overflow-x-auto">
+        <div class="flex items-center gap-0 min-w-max">
+          <!-- Steps 1-7 -->
+          <div class="step flex items-center gap-2" data-step="1">
+            <div class="step-num w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0">1</div>
+            <span class="step-label text-xs text-gray-400 font-medium whitespace-nowrap">Pilih Mobil</span>
+          </div>
+          <div id="line1" class="h-0.5 w-6 bg-gray-200 mx-1 flex-shrink-0"></div>
+          <div class="step flex items-center gap-2" data-step="2">
+            <div class="step-num w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0">2</div>
+            <span class="step-label text-xs text-gray-400 font-medium whitespace-nowrap">Tanggal</span>
+          </div>
+          <div id="line2" class="h-0.5 w-6 bg-gray-200 mx-1 flex-shrink-0"></div>
+          <div class="step flex items-center gap-2" data-step="3">
+            <div class="step-num w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0">3</div>
+            <span class="step-label text-xs text-gray-400 font-medium whitespace-nowrap">Data Diri</span>
+          </div>
+          <div id="line3" class="h-0.5 w-6 bg-gray-200 mx-1 flex-shrink-0"></div>
+          <div class="step flex items-center gap-2" data-step="4">
+            <div class="step-num w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0">4</div>
+            <span class="step-label text-xs text-gray-400 font-medium whitespace-nowrap">Dokumen</span>
+          </div>
+          <div id="line4" class="h-0.5 w-6 bg-gray-200 mx-1 flex-shrink-0"></div>
+          <div class="step flex items-center gap-2" data-step="5">
+            <div class="step-num w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0">5</div>
+            <span class="step-label text-xs text-gray-400 font-medium whitespace-nowrap">Jaminan</span>
+          </div>
+          <div id="line5" class="h-0.5 w-6 bg-gray-200 mx-1 flex-shrink-0"></div>
+          <div class="step flex items-center gap-2" data-step="6">
+            <div class="step-num w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0">6</div>
+            <span class="step-label text-xs text-gray-400 font-medium whitespace-nowrap">Pembayaran</span>
+          </div>
+          <div id="line6" class="h-0.5 w-6 bg-gray-200 mx-1 flex-shrink-0"></div>
+          <div class="step flex items-center gap-2" data-step="7">
+            <div class="step-num w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400 flex-shrink-0">7</div>
+            <span class="step-label text-xs text-gray-400 font-medium whitespace-nowrap">Selesai</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PANEL 1: PILIH KENDARAAN ===== -->
+      <div class="panel active" id="panel1">
+        <div class="mb-5">
+          <h3 class="text-xl font-bold text-primary">Pilih Kendaraan</h3>
+          <p class="text-sm text-gray-400 mt-1">Pilih kendaraan yang ingin Anda sewa</p>
+        </div>
+        <!-- Filter -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm mb-5 flex flex-wrap gap-3 items-center">
+          <select id="filterTipe" onchange="filterVehicles()" class="!w-auto !py-2">
+            <option value="">Semua Tipe</option>
+            <option>MPV</option><option>SUV</option><option>Sedan</option><option>Pickup</option>
+          </select>
+          <select id="filterTrans" onchange="filterVehicles()" class="!w-auto !py-2">
+            <option value="">Semua Transmisi</option>
+            <option>Matic</option><option>Manual</option>
+          </select>
+          <input type="text" id="filterCari" oninput="filterVehicles()" placeholder="Cari kendaraan..." class="!w-auto flex-1 !py-2" />
+        </div>
+        <div id="vehicleGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+          <div class="col-span-full flex flex-col items-center justify-center py-16 text-gray-400">
+            <i class='bx bx-loader-alt text-5xl animate-spin mb-3'></i>
+            <p>Memuat kendaraan...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PANEL 2: TANGGAL ===== -->
+      <div class="panel" id="panel2">
+        <div class="mb-5">
+          <h3 class="text-xl font-bold text-primary">Pilih Tanggal Sewa</h3>
+          <p class="text-sm text-gray-400 mt-1">Tentukan periode rental kendaraan</p>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Date Form -->
+          <div class="bg-white rounded-2xl p-6 shadow-sm space-y-5">
+            <!-- Car Preview -->
+            <div id="carPreviewBlock" class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl mb-4">
+              <div id="carThumbPreview" class="w-20 h-14 bg-blue-100 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                <i class='bx bxs-car text-3xl text-blue-300'></i>
+              </div>
+              <div>
+                <p id="previewCarName" class="font-bold text-primary">—</p>
+                <p id="previewCarPrice" class="text-sm text-accent font-semibold">—</p>
+              </div>
+            </div>
+            <div>
+              <label>📅 Tanggal Mulai Sewa</label>
+              <input type="text" id="dateStart" placeholder="Pilih tanggal mulai..." readonly />
+            </div>
+            <div>
+              <label>📅 Tanggal Selesai Sewa</label>
+              <input type="text" id="dateEnd" placeholder="Pilih tanggal selesai..." readonly />
+            </div>
+            <div id="availabilityResult" class="hidden rounded-xl p-3 text-sm font-medium"></div>
+            <div id="costSummary" class="hidden bg-indigo-50 rounded-xl p-4 space-y-1.5">
+              <div class="flex justify-between text-sm text-gray-600"><span>Harga/hari</span><span id="sumHarga">—</span></div>
+              <div class="flex justify-between text-sm text-gray-600"><span>Durasi</span><span id="sumDurasi">—</span></div>
+              <div class="border-t border-indigo-100 pt-1.5 flex justify-between font-bold text-primary"><span>Total Sewa</span><span id="sumTotal">—</span></div>
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button onclick="goToStep(1)" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                <i class='bx bx-arrow-back'></i> Kembali
+              </button>
+              <button onclick="checkDateAndProceed()" class="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2">
+                Lanjut <i class='bx bx-arrow-right'></i>
+              </button>
+            </div>
+          </div>
+          <!-- Booking Info -->
+          <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <h4 class="font-bold text-primary mb-4 text-sm">📋 Informasi Pemesanan</h4>
+            <div id="bookedDatesInfo" class="space-y-2 text-xs text-gray-500">
+              <p>Pilih tanggal untuk melihat ketersediaan kendaraan.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PANEL 3: DATA DIRI ===== -->
+      <div class="panel" id="panel3">
+        <div class="mb-5">
+          <h3 class="text-xl font-bold text-primary">Data Diri Pemesan</h3>
+          <p class="text-sm text-gray-400 mt-1">Isi data pribadi Anda sesuai KTP</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm max-w-2xl">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label>Nama Lengkap *</label>
+              <input type="text" id="custName" placeholder="Sesuai KTP" />
+            </div>
+            <div>
+              <label>No. KTP *</label>
+              <input type="text" id="custKTP" maxlength="16" placeholder="16 digit NIK" />
+            </div>
+            <div>
+              <label>No. HP / WhatsApp *</label>
+              <input type="tel" id="custPhone" placeholder="08xx-xxxx-xxxx" />
+            </div>
+            <div>
+              <label>Email</label>
+              <input type="email" id="custEmail" placeholder="email@contoh.com" />
+            </div>
+            <div class="sm:col-span-2">
+              <label>Alamat Lengkap *</label>
+              <textarea id="custAlamat" rows="2" placeholder="Sesuai KTP..."></textarea>
+            </div>
+            <div>
+              <label>No. SIM A *</label>
+              <input type="text" id="custSIM" placeholder="Nomor SIM A" />
+            </div>
+          </div>
+          <div class="flex gap-3 pt-5">
+            <button onclick="goToStep(2)" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+              <i class='bx bx-arrow-back'></i> Kembali
+            </button>
+            <button onclick="validateDataAndProceed()" class="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2">
+              Lanjut ke Dokumen <i class='bx bx-arrow-right'></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PANEL 4: DOKUMEN ===== -->
+      <div class="panel" id="panel4">
+        <div class="mb-5">
+          <h3 class="text-xl font-bold text-primary">Upload Dokumen</h3>
+          <p class="text-sm text-gray-400 mt-1">Upload foto/scan dokumen identitas Anda</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm max-w-2xl space-y-5">
+          <!-- KTP -->
+          <div id="docKTP" class="p-4 border-2 border-dashed border-gray-200 rounded-xl">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <i class='bx bxs-id-card text-2xl text-blue-400'></i>
+                <div>
+                  <p class="font-semibold text-gray-700 text-sm">KTP *</p>
+                  <p class="text-xs text-gray-400">Foto KTP jelas dan tidak blur</p>
+                </div>
+              </div>
+              <span id="statusKTP" class="text-xs text-gray-400">Belum upload</span>
+            </div>
+            <input type="file" id="fileKTP" accept="image/*,.pdf" onchange="handleUpload('ktp','fileKTP','docKTP','statusKTP')" class="text-sm w-full" />
+          </div>
+          <!-- SIM -->
+          <div id="docSIM" class="p-4 border-2 border-dashed border-gray-200 rounded-xl">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <i class='bx bxs-car text-2xl text-green-400'></i>
+                <div>
+                  <p class="font-semibold text-gray-700 text-sm">SIM A *</p>
+                  <p class="text-xs text-gray-400">SIM A yang masih berlaku</p>
+                </div>
+              </div>
+              <span id="statusSIM" class="text-xs text-gray-400">Belum upload</span>
+            </div>
+            <input type="file" id="fileSIM" accept="image/*,.pdf" onchange="handleUpload('sim','fileSIM','docSIM','statusSIM')" class="text-sm w-full" />
+          </div>
+          <!-- Selfie -->
+          <div id="docSelfie" class="p-4 border-2 border-dashed border-gray-200 rounded-xl">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <i class='bx bxs-camera text-2xl text-purple-400'></i>
+                <div>
+                  <p class="font-semibold text-gray-700 text-sm">Foto Selfie + KTP *</p>
+                  <p class="text-xs text-gray-400">Foto Anda sambil memegang KTP</p>
+                </div>
+              </div>
+              <span id="statusSelfie" class="text-xs text-gray-400">Belum upload</span>
+            </div>
+            <input type="file" id="fileSelfie" accept="image/*" onchange="handleUpload('selfie','fileSelfie','docSelfie','statusSelfie')" class="text-sm w-full" />
+          </div>
+
+          <div id="docValidationMsg" class="hidden p-3 rounded-xl text-sm font-medium"></div>
+
+          <div class="flex gap-3 pt-2">
+            <button onclick="goToStep(3)" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+              <i class='bx bx-arrow-back'></i> Kembali
+            </button>
+            <button onclick="validateDocsAndProceed()" class="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2">
+              Lanjut ke Jaminan <i class='bx bx-arrow-right'></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PANEL 5: JAMINAN ===== -->
+      <div class="panel" id="panel5">
+        <div class="mb-5">
+          <h3 class="text-xl font-bold text-primary">Pilih Jaminan</h3>
+          <p class="text-sm text-gray-400 mt-1">Jaminan digunakan sebagai agunan selama masa sewa</p>
+        </div>
+        <div class="max-w-2xl space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Jaminan Kendaraan -->
+            <div id="jaminanKendaraan" onclick="selectJaminan('kendaraan')" class="bg-white rounded-2xl p-5 shadow-sm border-2 border-transparent cursor-pointer hover:border-accent transition-all">
+              <i class='bx bxs-car text-3xl text-accent mb-3 block'></i>
+              <h4 class="font-bold text-primary mb-1">Jaminan Kendaraan</h4>
+              <p class="text-xs text-gray-500 mb-3">Serahkan kendaraan Anda sebagai jaminan. Minimal tahun produksi 2017.</p>
+              <span class="inline-block bg-orange-100 text-orange-700 text-xs font-semibold px-3 py-1 rounded-full">Berlaku DP (Down Payment)</span>
+            </div>
+            <!-- Jaminan Non-Kendaraan -->
+            <div id="jaminanNonKendaraan" onclick="selectJaminan('non-kendaraan')" class="bg-white rounded-2xl p-5 shadow-sm border-2 border-transparent cursor-pointer hover:border-blue-500 transition-all">
+              <i class='bx bxs-bank text-3xl text-blue-400 mb-3 block'></i>
+              <h4 class="font-bold text-primary mb-1">Jaminan Non-Kendaraan</h4>
+              <p class="text-xs text-gray-500 mb-3">Dokumen (BPKB, sertifikat) atau uang tunai. Tidak menggunakan DP.</p>
+              <span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">Deposit Rp 2.000.000</span>
+            </div>
+          </div>
+
+          <!-- Form Kendaraan Jaminan -->
+          <div id="kendaraanJaminanForm" class="hidden bg-white rounded-2xl p-6 shadow-sm">
+            <h4 class="font-bold text-primary mb-4 text-sm">🚗 Data Kendaraan Jaminan</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label>Jenis Kendaraan *</label>
+                <select id="jaminanJenis"><option value="">— Pilih —</option><option>Mobil</option><option>Sepeda Motor</option></select>
+              </div>
+              <div>
+                <label>Merek / Tipe *</label>
+                <input type="text" id="jaminanMerek" placeholder="Cth: Honda Brio 2019" />
+              </div>
+              <div>
+                <label>Tahun Produksi * (min. 2017)</label>
+                <input type="number" id="jaminanTahun" min="2017" max="2026" placeholder="2017–2026" />
+              </div>
+              <div>
+                <label>No. Plat Kendaraan *</label>
+                <input type="text" id="jaminanPlat" placeholder="BK 1234 AB" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Ringkasan Pembayaran -->
+          <div id="jaminanSummary" class="hidden bg-indigo-50 rounded-2xl p-5 space-y-2">
+            <h4 class="font-bold text-primary text-sm mb-3">💳 Ringkasan Pembayaran</h4>
+            <div class="flex justify-between text-sm text-gray-600"><span>Total Biaya Sewa</span><span id="sumTotalSewa">—</span></div>
+            <div class="flex justify-between text-sm text-gray-600"><span>Deposit E-Tilang</span><span>Rp 500.000</span></div>
+            <div class="flex justify-between text-sm text-gray-600" id="sumJaminanRow"><span>Jaminan / Deposit</span><span id="sumJaminan">—</span></div>
+            <div class="flex justify-between text-sm text-gray-600 hidden" id="sumDPRow"><span>DP Yang Harus Dibayar</span><span id="sumDP">—</span></div>
+            <div class="border-t border-indigo-200 pt-2 flex justify-between font-bold text-primary text-base"><span>TOTAL BAYAR SEKARANG</span><span id="sumBayarSekarang">—</span></div>
+            <p class="text-[10px] text-gray-400 pt-1">* Deposit dikembalikan setelah kendaraan kembali.</p>
+          </div>
+
+          <div class="flex gap-3">
+            <button onclick="goToStep(4)" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+              <i class='bx bx-arrow-back'></i> Kembali
+            </button>
+            <button onclick="validateJaminanAndProceed()" class="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2">
+              Lanjut ke Pembayaran <i class='bx bx-arrow-right'></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PANEL 6: PEMBAYARAN ===== -->
+      <div class="panel" id="panel6">
+        <div class="mb-5">
+          <h3 class="text-xl font-bold text-primary">Metode Pembayaran</h3>
+          <p class="text-sm text-gray-400 mt-1">Pilih metode pembayaran yang diinginkan</p>
+        </div>
+        <div class="max-w-xl">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+            <div onclick="selectPayment('transfer_bca')" id="pm_transfer_bca" class="payment-method-card cursor-pointer bg-white rounded-xl p-4 border-2 border-gray-100 flex flex-col items-center gap-2 hover:border-indigo-300 transition-all">
+              <i class='bx bxs-bank text-2xl text-blue-600'></i>
+              <p class="font-semibold text-xs text-gray-700">Transfer BCA</p>
+            </div>
+            <div onclick="selectPayment('transfer_mandiri')" id="pm_transfer_mandiri" class="payment-method-card cursor-pointer bg-white rounded-xl p-4 border-2 border-gray-100 flex flex-col items-center gap-2 hover:border-indigo-300 transition-all">
+              <i class='bx bxs-bank text-2xl text-blue-800'></i>
+              <p class="font-semibold text-xs text-gray-700">Mandiri</p>
+            </div>
+            <div onclick="selectPayment('transfer_bni')" id="pm_transfer_bni" class="payment-method-card cursor-pointer bg-white rounded-xl p-4 border-2 border-gray-100 flex flex-col items-center gap-2 hover:border-indigo-300 transition-all">
+              <i class='bx bxs-bank text-2xl text-orange-500'></i>
+              <p class="font-semibold text-xs text-gray-700">BNI</p>
+            </div>
+            <div onclick="selectPayment('qris')" id="pm_qris" class="payment-method-card cursor-pointer bg-white rounded-xl p-4 border-2 border-gray-100 flex flex-col items-center gap-2 hover:border-indigo-300 transition-all">
+              <i class='bx bx-qr text-2xl text-blue-400'></i>
+              <p class="font-semibold text-xs text-gray-700">QRIS</p>
+            </div>
+            <div onclick="selectPayment('gopay')" id="pm_gopay" class="payment-method-card cursor-pointer bg-white rounded-xl p-4 border-2 border-gray-100 flex flex-col items-center gap-2 hover:border-indigo-300 transition-all">
+              <i class='bx bxs-wallet text-2xl text-green-500'></i>
+              <p class="font-semibold text-xs text-gray-700">GoPay</p>
+            </div>
+            <div onclick="selectPayment('ovo')" id="pm_ovo" class="payment-method-card cursor-pointer bg-white rounded-xl p-4 border-2 border-gray-100 flex flex-col items-center gap-2 hover:border-indigo-300 transition-all">
+              <i class='bx bxs-wallet-alt text-2xl text-purple-600'></i>
+              <p class="font-semibold text-xs text-gray-700">OVO</p>
+            </div>
+          </div>
+
+          <!-- QR Section -->
+          <div id="qrSection" class="hidden bg-white rounded-2xl p-6 shadow-sm text-center mb-5">
+            <h4 id="qrMethodName" class="font-bold text-primary mb-1">Scan QR Code</h4>
+            <p id="qrDesc" class="text-xs text-gray-400 mb-4">Buka aplikasi pembayaran dan scan QR di bawah</p>
+            <div id="qrcode" class="flex justify-center mb-4"></div>
+            <div id="qrAmount" class="text-2xl font-bold text-primary mb-2">—</div>
+            <div class="text-xs text-gray-400 mb-3">ID: <strong id="qrBookingId">—</strong></div>
+            <div id="paymentStatusBadge" class="inline-block bg-amber-100 text-amber-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-3">⏳ Menunggu Pembayaran</div>
+            <div class="text-sm text-gray-500 mb-5">Bayar dalam: <span id="countdown" class="font-bold text-primary">15:00</span></div>
+            <div class="flex gap-3">
+              <button onclick="goToStep(5)" class="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">Ganti Metode</button>
+              <button onclick="confirmPayment()" class="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2">
+                <i class='bx bx-check-circle'></i> Konfirmasi Bayar
+              </button>
+            </div>
+          </div>
+
+          <div class="flex gap-3" id="paymentNextBtn" style="display:none">
+            <button onclick="goToStep(5)" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+              <i class='bx bx-arrow-back'></i> Kembali
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PANEL 7: SUKSES ===== -->
+      <div class="panel" id="panel7">
+        <div class="max-w-lg mx-auto text-center">
+          <div class="bg-white rounded-2xl p-8 shadow-sm mb-5">
+            <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5">
+              <i class='bx bxs-check-circle text-5xl text-emerald-500'></i>
+            </div>
+            <h3 class="text-2xl font-bold text-primary mb-2">Pemesanan Berhasil! 🎉</h3>
+            <p class="text-gray-500 text-sm mb-5">Terima kasih! Pemesanan Anda telah dikonfirmasi. Tunjukkan bukti ini saat pengambilan kendaraan.</p>
+
+            <div class="bg-gray-50 rounded-xl px-5 py-3 mb-5">
+              <p class="text-xs text-gray-400 mb-1">Nomor Pemesanan</p>
+              <p id="finalBookingRef" class="text-2xl font-black text-primary tracking-widest">RNT-XXXXXX</p>
+            </div>
+
+            <div id="receiptDetails" class="text-left space-y-2 mb-5 bg-gray-50 rounded-xl p-4"></div>
+
+            <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 text-left mb-4">
+              <p class="font-bold text-accent text-sm mb-2">⚠️ Syarat Pengambilan</p>
+              <ul class="text-xs text-gray-600 space-y-1 list-disc list-inside">
+                <li>Pembayaran LUNAS FULL sebelum pengambilan</li>
+                <li>Tunjukkan struk / bukti pembayaran asli</li>
+                <li>Bawa KTP & SIM A asli</li>
+                <li>Serahkan kendaraan jaminan sebelum pengambilan</li>
+              </ul>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-left mb-6">
+              <p class="font-bold text-emerald-700 text-sm mb-2">💰 Pengembalian Deposit</p>
+              <ul class="text-xs text-gray-600 space-y-1 list-disc list-inside">
+                <li>Deposit utama: dikembalikan saat kendaraan dikembalikan</li>
+                <li>Deposit E-tilang: dikembalikan <strong>7 hari</strong> setelah kembali</li>
+              </ul>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button onclick="window.location.href='booking.html'" class="py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 flex items-center justify-center gap-2">
+                <i class='bx bx-refresh'></i> Pesan Lagi
+              </button>
+              <button onclick="window.location.href='pesanan-saya.html'" class="py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark flex items-center justify-center gap-2">
+                <i class='bx bx-list-ul'></i> Pesanan Saya
+              </button>
+              <button onclick="cetakStrukBooking()" class="py-3 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-accent-light flex items-center justify-center gap-2">
+                <i class='bx bx-printer'></i> Cetak Struk
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+    <footer class="text-center text-gray-400 text-xs py-5">&copy; 2026 EasyCar</footer>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="../services/supabase.js"></script>
+  <script src="../components/sidebar.js"></script>
+  <script src="../utils/ui.js"></script>
+  <script src="../utils/print.js"></script>
+
+  <script>
+    let CARS = [], EXISTING_BOOKINGS = [], countdownTimer = null;
+    const state = {
+      currentStep: 1, selectedCar: null, dateStart: null, dateEnd: null,
+      days: 0, customer: {}, docs: {}, jaminanType: null, jaminanData: {},
+      paymentMethod: null, totalBayar: 0, bookingId: null
+    };
+
+    // ─── INIT ───
+    (async () => {
+      initSidebar('booking.html');
+      document.querySelectorAll('.sidebar-link').forEach(l => {
+        if (l.href.includes('booking.html')) l.classList.add('active-page');
+      });
+      const user = await requireLogin();
+      if (!user) return;
+      renderSidebarUser(user);
+      state.customer.email = user.email;
+      state.customer.name = user.full_name || '';
+      document.body.classList.add('loaded');
+
+      // Pre-fill name/email
+      if (user.full_name) document.getElementById('custName').value = user.full_name;
+      if (user.email) document.getElementById('custEmail').value = user.email;
+      if (user.phone) document.getElementById('custPhone').value = user.phone;
+
+      await loadKendaraanFromDB();
+      await loadExistingBookings();
+      renderVehicleGrid();
+      goToStep(1);
+
+      // Flatpickr
+      flatpickr('#dateStart', {
+        dateFormat: 'Y-m-d', locale: 'id', minDate: 'today',
+        onChange: () => onDateChange()
+      });
+      flatpickr('#dateEnd', {
+        dateFormat: 'Y-m-d', locale: 'id', minDate: 'today',
+        onChange: () => onDateChange()
+      });
+
+      // URL preselect
+      const preselect = new URLSearchParams(location.search).get('kendaraan');
+      if (preselect) {
+        const car = CARS.find(c => String(c.id) === preselect);
+        if (car) { state.selectedCar = car; renderVehicleGrid(); showToast(`${car.brand} ${car.name} dipilih ✓`, 'success'); setTimeout(() => goToStep(2), 400); }
+      }
+    })();
+
+    async function loadKendaraanFromDB() {
+      const { data, error } = await supabase.from('kendaraan').select('*').order('id');
+      if (error || !data) { showToast('Gagal memuat data kendaraan', 'error'); return; }
+      CARS = data.map(k => ({
+        id: k.id, brand: k.merk, name: k.nama, price: Number(k.harga_per_hari),
+        seats: k.kapasitas, trans: k.transmisi === 'Automatic' ? 'Matic' : 'Manual',
+        fuel: k.bahan_bakar, type: k.tipe, year: k.tahun, image: k.foto_url || '',
+        available: k.status !== 'Perawatan', badge: k.status, deskripsi: k.deskripsi || ''
+      }));
+    }
+
+    async function loadExistingBookings() {
+      const { data, error } = await supabase.from('pemesanan')
+        .select('kendaraan_id, tanggal_mulai, tanggal_selesai')
+        .in('status', ['Menunggu', 'Dikonfirmasi', 'Aktif']);
+      if (!error && data) {
+        EXISTING_BOOKINGS = data.map(b => ({ carId: b.kendaraan_id, start: b.tanggal_mulai, end: b.tanggal_selesai }));
+      }
+    }
+
+    function filterVehicles() {
+      const tipe = document.getElementById('filterTipe').value.toLowerCase();
+      const trans = document.getElementById('filterTrans').value.toLowerCase();
+      const cari = document.getElementById('filterCari').value.toLowerCase();
+      const filtered = CARS.filter(c => {
+        if (tipe && c.type?.toLowerCase() !== tipe) return false;
+        if (trans && c.trans?.toLowerCase() !== trans) return false;
+        if (cari && !c.name.toLowerCase().includes(cari) && !c.brand.toLowerCase().includes(cari)) return false;
+        return true;
+      });
+      renderVehicleGridWith(filtered);
+    }
+
+    function renderVehicleGrid() { renderVehicleGridWith(CARS); }
+
+    function renderVehicleGridWith(cars) {
+      const grid = document.getElementById('vehicleGrid');
+      if (!cars || cars.length === 0) {
+        grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-12">Tidak ada kendaraan ditemukan.</div>';
+        return;
+      }
+      const s = state.dateStart, e = state.dateEnd;
+      grid.innerHTML = cars.map(car => {
+        const hasConflict = s && e ? checkDateOverlap(car.id, s, e).length > 0 : false;
+        const canBook = car.available && !hasConflict;
+        const badgeLabel = !car.available ? car.badge : (hasConflict ? 'Disewa' : 'Tersedia');
+        const badgeCls = !car.available || hasConflict ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700';
+        const isSelected = state.selectedCar?.id === car.id;
+        return `
+          <div class="vehicle-card bg-white rounded-2xl overflow-hidden border-2 ${isSelected ? 'border-accent' : 'border-transparent'} shadow-sm cursor-pointer"
+               onclick="${canBook ? `selectCar(${car.id})` : `showToast('Kendaraan tidak tersedia','error')`}">
+            <div class="relative h-44 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center overflow-hidden">
+              ${car.image
+                ? `<img src="${car.image}" alt="${car.name}" class="w-4/5 h-full object-contain" onerror="this.style.display='none'">`
+                : `<i class='bx bxs-car text-8xl text-indigo-200'></i>`}
+              <span class="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full ${badgeCls}">${badgeLabel}</span>
+              ${isSelected ? `<span class="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-accent text-white">✓ Dipilih</span>` : ''}
+              ${!canBook ? '<div class="absolute inset-0 bg-white/50 flex items-center justify-center"><span class="bg-white rounded-lg px-3 py-1 text-xs font-bold text-gray-400 shadow">Tidak Tersedia</span></div>' : ''}
+            </div>
+            <div class="p-4">
+              <p class="text-xs text-gray-400 font-medium">${car.brand}</p>
+              <h4 class="font-bold text-primary text-base mb-3">${car.name}</h4>
+              <div class="flex items-center gap-3 text-xs text-gray-500 mb-4">
+                <span class="flex items-center gap-1"><i class='bx bx-user'></i> ${car.seats} org</span>
+                <span class="flex items-center gap-1"><i class='bx bx-trip'></i> ${car.trans}</span>
+                <span class="flex items-center gap-1"><i class='bx bx-gas-station'></i> ${car.fuel}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xl font-black text-primary">Rp ${(car.price/1000).toFixed(0)}rb</span>
+                  <span class="text-xs text-gray-400">/hari</span>
+                </div>
+                <button class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${isSelected ? 'bg-accent text-white' : 'bg-primary text-white hover:bg-primary-dark'} ${!canBook ? 'opacity-40 cursor-not-allowed' : ''}" ${!canBook ? 'disabled' : ''}>
+                  ${isSelected ? '✓ Dipilih' : 'Pilih'}
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function selectCar(id) {
+      state.selectedCar = CARS.find(c => c.id === id);
+      renderVehicleGrid();
+      showToast(`${state.selectedCar.name} dipilih ✓`, 'success');
+      setTimeout(() => goToStep(2), 500);
+    }
+
+    function checkDateOverlap(carId, start, end) {
+      const s = new Date(start), e = new Date(end);
+      return EXISTING_BOOKINGS.filter(b => b.carId === carId).filter(b => {
+        const bs = new Date(b.start), be = new Date(b.end);
+        return s <= be && e >= bs;
+      });
+    }
+
+    function onDateChange() {
+      const s = document.getElementById('dateStart').value;
+      const e = document.getElementById('dateEnd').value;
+      state.dateStart = s; state.dateEnd = e;
+      if (!s || !e) return;
+      if (new Date(e) <= new Date(s)) {
+        const res = document.getElementById('availabilityResult');
+        res.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600';
+        res.textContent = '⚠️ Tanggal selesai harus lebih dari tanggal mulai!';
+        res.classList.remove('hidden');
+        document.getElementById('costSummary').classList.add('hidden');
+        return;
+      }
+      if (!state.selectedCar) return;
+      const conflicts = checkDateOverlap(state.selectedCar.id, s, e);
+      const days = Math.ceil((new Date(e) - new Date(s)) / (1000*60*60*24));
+      state.days = days;
+      const res = document.getElementById('availabilityResult');
+      const summary = document.getElementById('costSummary');
+      if (conflicts.length > 0) {
+        res.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600';
+        res.textContent = '❌ Kendaraan sudah dipesan pada tanggal tersebut.';
+        res.classList.remove('hidden'); summary.classList.add('hidden');
+      } else {
+        res.className = 'p-3 rounded-xl text-sm font-medium bg-emerald-50 text-emerald-700';
+        res.textContent = `✅ Kendaraan tersedia! Durasi: ${days} hari`;
+        res.classList.remove('hidden');
+        document.getElementById('sumHarga').textContent = formatRupiah(state.selectedCar.price);
+        document.getElementById('sumDurasi').textContent = `${days} hari`;
+        document.getElementById('sumTotal').textContent = formatRupiah(state.selectedCar.price * days);
+        summary.classList.remove('hidden');
+      }
+      renderVehicleGrid();
+    }
+
+    function checkDateAndProceed() {
+      if (!state.selectedCar) { showToast('Pilih kendaraan terlebih dahulu', 'error'); goToStep(1); return; }
+      if (!state.dateStart || !state.dateEnd) { showToast('Pilih tanggal sewa dan selesai', 'error'); return; }
+      if (new Date(state.dateEnd) <= new Date(state.dateStart)) { showToast('Tanggal selesai harus setelah mulai', 'error'); return; }
+      const conflicts = checkDateOverlap(state.selectedCar.id, state.dateStart, state.dateEnd);
+      if (conflicts.length > 0) { showToast('Kendaraan sudah dipesan pada tanggal tersebut', 'error'); return; }
+      goToStep(3);
+    }
+
+    function validateDataAndProceed() {
+      const name = document.getElementById('custName').value.trim();
+      const ktp = document.getElementById('custKTP').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const sim = document.getElementById('custSIM').value.trim();
+      const alamat = document.getElementById('custAlamat').value.trim();
+      if (!name || !ktp || !phone || !sim || !alamat) { showToast('Lengkapi semua data yang wajib diisi', 'error'); return; }
+      if (ktp.length !== 16) { showToast('No. KTP harus 16 digit', 'error'); return; }
+      state.customer = { name, ktp, phone, email: document.getElementById('custEmail').value.trim(), sim, alamat };
+      goToStep(4);
+    }
+
+    function handleUpload(docKey, fileInputId, itemId, statusId) {
+      const file = document.getElementById(fileInputId).files[0];
+      if (!file) return;
+      state.docs[docKey] = file;
+      const statusEl = document.getElementById(statusId);
+      const cardEl = document.getElementById(itemId);
+      if (statusEl) { statusEl.textContent = '✅ Terupload'; statusEl.className = 'text-xs text-emerald-600 font-semibold'; }
+      if (cardEl) { cardEl.classList.remove('border-gray-200'); cardEl.classList.add('border-emerald-300', 'bg-emerald-50/30'); }
+    }
+
+    function validateDocsAndProceed() {
+      const required = ['ktp','sim','selfie'];
+      const missing = required.filter(k => !state.docs[k]);
+      const msgEl = document.getElementById('docValidationMsg');
+      if (missing.length > 0) {
+        msgEl.className = 'p-3 rounded-xl text-sm font-medium bg-red-50 text-red-600';
+        msgEl.textContent = `Upload ${missing.map(k=>k.toUpperCase()).join(', ')} terlebih dahulu`;
+        msgEl.classList.remove('hidden');
+        return;
+      }
+      msgEl.classList.add('hidden');
+      goToStep(5);
+    }
+
+    function selectJaminan(type) {
+      state.jaminanType = type;
+      document.getElementById('jaminanKendaraan').classList.toggle('border-accent', type === 'kendaraan');
+      document.getElementById('jaminanNonKendaraan').classList.toggle('border-blue-500', type === 'non-kendaraan');
+      document.getElementById('kendaraanJaminanForm').classList.toggle('hidden', type !== 'kendaraan');
+      updateJaminanSummary();
+    }
+
+    function updateJaminanSummary() {
+      const sumEl = document.getElementById('jaminanSummary');
+      sumEl.classList.remove('hidden');
+      const totalSewa = state.selectedCar.price * state.days;
+      const depositETilang = 500000;
+      let jaminan = 0, totalBayar = 0;
+      if (state.jaminanType === 'kendaraan') {
+        jaminan = Math.round(totalSewa * 0.3);
+        totalBayar = jaminan + depositETilang;
+        document.getElementById('sumDPRow').classList.remove('hidden');
+        document.getElementById('sumDP').textContent = formatRupiah(jaminan);
+        document.getElementById('sumJaminanRow').querySelector('span:first-child').textContent = 'Jaminan Kendaraan (DP 30%)';
+      } else {
+        jaminan = 2000000;
+        totalBayar = jaminan + depositETilang;
+        document.getElementById('sumDPRow').classList.add('hidden');
+        document.getElementById('sumJaminanRow').querySelector('span:first-child').textContent = 'Deposit Non-Kendaraan';
+      }
+      state.totalBayar = totalBayar;
+      document.getElementById('sumTotalSewa').textContent = formatRupiah(totalSewa);
+      document.getElementById('sumJaminan').textContent = formatRupiah(jaminan);
+      document.getElementById('sumBayarSekarang').textContent = formatRupiah(totalBayar);
+    }
+
+    function validateJaminanAndProceed() {
+      if (!state.jaminanType) { showToast('Pilih jenis jaminan terlebih dahulu', 'error'); return; }
+      if (state.jaminanType === 'kendaraan') {
+        const jenis = document.getElementById('jaminanJenis').value;
+        const merek = document.getElementById('jaminanMerek').value.trim();
+        const tahun = parseInt(document.getElementById('jaminanTahun').value);
+        const plat = document.getElementById('jaminanPlat').value.trim();
+        if (!jenis || !merek || !tahun || !plat) { showToast('Lengkapi data kendaraan jaminan', 'error'); return; }
+        if (tahun < 2017) { showToast('Tahun kendaraan minimal 2017', 'error'); return; }
+        state.jaminanData = { jenis, merek, tahun, plat };
+      }
+      goToStep(6);
+    }
+
+    function selectPayment(method) {
+      state.paymentMethod = method;
+      document.querySelectorAll('.payment-method-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById(`pm_${method}`)?.classList.add('selected');
+      // Generate booking ID
+      if (!state.bookingId) {
+        state.bookingId = 'RNT-' + Date.now().toString(36).toUpperCase();
+      }
+      const qrSection = document.getElementById('qrSection');
+      qrSection.classList.remove('hidden');
+      document.getElementById('qrMethodName').textContent = `Scan QR — ${method.replace('_',' ').toUpperCase()}`;
+      document.getElementById('qrAmount').textContent = formatRupiah(state.totalBayar);
+      document.getElementById('qrBookingId').textContent = state.bookingId;
+      const qrEl = document.getElementById('qrcode');
+      qrEl.innerHTML = '';
+      try {
+        new QRCode(qrEl, { text: `EASYCAR|${state.bookingId}|${state.totalBayar}|${method}`, width: 180, height: 180 });
+      } catch(e) { qrEl.textContent = '[QR Code]'; }
+      clearInterval(countdownTimer);
+      startCountdown(15 * 60);
+    }
+
+    function startCountdown(seconds) {
+      const el = document.getElementById('countdown');
+      clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        seconds--;
+        if (seconds <= 0) { clearInterval(countdownTimer); el.textContent = '00:00'; return; }
+        const m = Math.floor(seconds / 60), s = seconds % 60;
+        el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      }, 1000);
+    }
+
+    async function confirmPayment() {
+      clearInterval(countdownTimer);
+      const badge = document.getElementById('paymentStatusBadge');
+      badge.className = 'inline-block bg-emerald-100 text-emerald-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-3';
+      badge.textContent = '✅ Pembayaran Dikonfirmasi';
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const metodeMap = { transfer_bca:'Transfer Bank', transfer_mandiri:'Transfer Bank', transfer_bni:'Transfer Bank', qris:'QRIS', gopay:'QRIS', ovo:'QRIS' };
+        await supabase.from('pemesanan').insert({
+          kode_booking: state.bookingId,
+          user_id: session.user.id,
+          kendaraan_id: state.selectedCar.id,
+          nama_pemesan: state.customer.name,
+          email_pemesan: state.customer.email || session.user.email,
+          telepon_pemesan: state.customer.phone || '-',
+          tanggal_mulai: state.dateStart,
+          tanggal_selesai: state.dateEnd,
+          lokasi_pengambilan: 'Kantor EasyCar',
+          lokasi_pengembalian: 'Kantor EasyCar',
+          total_harga: state.selectedCar.price * state.days,
+          uang_muka: state.totalBayar,
+          status: 'Dikonfirmasi',
+          status_pembayaran: 'DP',
+          metode_pembayaran: metodeMap[state.paymentMethod] || 'QRIS',
+          catatan: state.jaminanType === 'kendaraan'
+            ? `Jaminan: ${state.jaminanData.merek} ${state.jaminanData.tahun} (${state.jaminanData.plat})`
+            : 'Jaminan Non-Kendaraan (Deposit Rp 2.000.000)',
+        });
+      }
+      showToast('Pembayaran berhasil dikonfirmasi!', 'success');
+      setTimeout(() => { buildReceipt(); goToStep(7); }, 1000);
+    }
+
+    function buildReceipt() {
+      document.getElementById('finalBookingRef').textContent = state.bookingId;
+      document.getElementById('receiptDetails').innerHTML = `
+        <div class="flex justify-between text-sm py-1 border-b border-gray-100"><span class="text-gray-400">Kendaraan</span><span class="font-semibold text-primary">${state.selectedCar.brand} ${state.selectedCar.name}</span></div>
+        <div class="flex justify-between text-sm py-1 border-b border-gray-100"><span class="text-gray-400">Pemesan</span><span class="font-semibold">${state.customer.name}</span></div>
+        <div class="flex justify-between text-sm py-1 border-b border-gray-100"><span class="text-gray-400">Tanggal</span><span class="font-semibold text-xs">${state.dateStart} → ${state.dateEnd}</span></div>
+        <div class="flex justify-between text-sm py-1 border-b border-gray-100"><span class="text-gray-400">Durasi</span><span class="font-semibold">${state.days} hari</span></div>
+        <div class="flex justify-between text-sm py-1 border-b border-gray-100"><span class="text-gray-400">Total Sewa</span><span class="font-semibold">${formatRupiah(state.selectedCar.price * state.days)}</span></div>
+        <div class="flex justify-between text-sm py-1"><span class="text-gray-400">Total Dibayar</span><span class="font-bold text-accent">${formatRupiah(state.totalBayar)}</span></div>`;
+    }
+
+    function cetakStrukBooking() {
+      printStruk({
+        bookingId: state.bookingId,
+        customerName: state.customer.name,
+        phone: state.customer.phone,
+        email: state.customer.email,
+        vehicleName: `${state.selectedCar.brand} ${state.selectedCar.name}`,
+        vehicleCategory: state.selectedCar.type,
+        tanggalSewa: state.dateStart,
+        tanggalKembali: state.dateEnd,
+        durasi: state.days,
+        hargaPerHari: state.selectedCar.price,
+        subtotal: state.selectedCar.price * state.days,
+        diskon: 0,
+        total: state.selectedCar.price * state.days,
+        metodePembayaran: state.paymentMethod?.replace('_',' ').toUpperCase(),
+        statusDP: 'DP Lunas',
+        dp: state.totalBayar,
+      });
+    }
+
+    // ─── STEP NAVIGATION ───
+    function goToStep(step) {
+      state.currentStep = step;
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(`panel${step}`)?.classList.add('active');
+      document.querySelectorAll('.step').forEach(s => {
+        const n = parseInt(s.dataset.step);
+        s.classList.remove('step-active','step-done');
+        const numEl = s.querySelector('.step-num');
+        if (!numEl) return;
+        numEl.style.background = ''; numEl.style.borderColor = ''; numEl.style.color = '';
+        if (n === step) {
+          numEl.style.background = '#e85d04'; numEl.style.borderColor = '#e85d04'; numEl.style.color = '#fff';
+          s.querySelector('.step-label')?.classList.add('text-accent'); s.querySelector('.step-label')?.classList.remove('text-gray-400');
+        } else if (n < step) {
+          numEl.style.background = '#22c55e'; numEl.style.borderColor = '#22c55e'; numEl.style.color = '#fff';
+        } else {
+          s.querySelector('.step-label')?.classList.remove('text-accent'); s.querySelector('.step-label')?.classList.add('text-gray-400');
+        }
+      });
+      for (let i = 1; i <= 6; i++) {
+        const line = document.getElementById(`line${i}`);
+        if (line) { line.style.background = i < step ? '#22c55e' : '#e5e7eb'; }
+      }
+      if (step === 2 && state.selectedCar) {
+        document.getElementById('previewCarName').textContent = `${state.selectedCar.brand} ${state.selectedCar.name}`;
+        document.getElementById('previewCarPrice').textContent = formatRupiah(state.selectedCar.price) + ' / hari';
+        const thumb = document.getElementById('carThumbPreview');
+        if (state.selectedCar.image) {
+          thumb.innerHTML = `<img src="${state.selectedCar.image}" alt="" class="w-full h-full object-contain">`;
+        }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

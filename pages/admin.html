@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyCar - Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --primary: #1a3c6e;
+      --primary-dark: #0f2347;
+      --accent: #e85d04;
+      --accent-light: #ff7733;
+      --light-blue: #4a90d9;
+      --bg: #f0f4f8;
+      --sidebar-w: 260px;
+      --card-radius: 16px;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --purple: #a855f7;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: var(--bg); display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar { width: var(--sidebar-w); background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary) 100%); min-height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; z-index: 100; box-shadow: 4px 0 20px rgba(0,0,0,0.2); }
+    .sidebar-brand { padding: 28px 24px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand i { font-size: 36px; color: var(--accent); }
+    .sidebar-brand h2 { font-size: 22px; font-weight: 800; color: #fff; }
+    .sidebar-brand h2 em { color: var(--accent); font-style: normal; }
+    .sidebar-nav { flex: 1; padding: 20px 0; }
+    .nav-section-title { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); padding: 12px 24px 6px; text-transform: uppercase; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 13px 24px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.25s; border-left: 3px solid transparent; text-decoration: none; font-size: 14px; font-weight: 500; }
+    .nav-item i { font-size: 20px; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active { background: rgba(232,93,4,0.15); color: #fff; border-left-color: var(--accent); }
+    .nav-item.active i { color: var(--accent); }
+    .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .user-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; font-weight: 700; }
+    .user-details .name { font-size: 13px; font-weight: 600; color: #fff; }
+    .user-details .role { font-size: 11px; color: rgba(255,255,255,0.5); }
+    .logout-btn { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 18px; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--accent); }
+
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 50; }
+    .topbar-left h2 { font-size: 20px; font-weight: 700; color: var(--primary); }
+    .topbar-left p { font-size: 12px; color: #888; }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .notif-btn { width: 40px; height: 40px; background: var(--bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; border: none; }
+    .notif-btn i { font-size: 20px; color: #666; }
+    .notif-badge { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+
+    .page-content { padding: 28px 32px; flex: 1; }
+
+    /* TABS */
+    .admin-tabs { display: flex; gap: 4px; background: #fff; border-radius: 12px; padding: 6px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 28px; width: fit-content; }
+    .admin-tab { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #888; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; border: none; background: none; }
+    .admin-tab.active { background: var(--primary); color: #fff; }
+    .admin-tab:hover:not(.active) { background: var(--bg); color: var(--primary); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
+    .stat-card { background: #fff; border-radius: var(--card-radius); padding: 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .stat-icon.blue { background: rgba(74,144,217,0.12); color: var(--light-blue); }
+    .stat-icon.orange { background: rgba(232,93,4,0.12); color: var(--accent); }
+    .stat-icon.green { background: rgba(34,197,94,0.12); color: var(--green); }
+    .stat-icon.red { background: rgba(239,68,68,0.12); color: var(--red); }
+    .stat-info h3 { font-size: 24px; font-weight: 800; color: var(--primary); }
+    .stat-info p { font-size: 12px; color: #888; }
+
+    /* TABLE */
+    .table-card { background: #fff; border-radius: var(--card-radius); box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 28px; }
+    .table-header { padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f0f0f0; }
+    .table-header h3 { font-size: 17px; font-weight: 700; color: var(--primary); }
+    .table-search { display: flex; align-items: center; background: var(--bg); border-radius: 8px; padding: 7px 14px; gap: 8px; }
+    .table-search input { border: none; background: none; outline: none; font-size: 13px; color: #555; width: 180px; font-family: 'Poppins', sans-serif; }
+    .table-search i { color: #aaa; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 12px 16px; background: #fafafa; color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { padding: 14px 16px; border-bottom: 1px solid #f5f5f5; color: #444; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafe; }
+
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .status-badge.aktif { background: rgba(34,197,94,0.12); color: #16a34a; }
+    .status-badge.selesai { background: rgba(74,144,217,0.12); color: var(--light-blue); }
+    .status-badge.pending { background: rgba(245,158,11,0.12); color: #b45309; }
+    .status-badge.terlambat { background: rgba(239,68,68,0.12); color: #dc2626; }
+    .status-badge.belum { background: rgba(156,163,175,0.15); color: #6b7280; }
+
+    .pay-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .pay-badge.dp { background: rgba(245,158,11,0.12); color: #b45309; }
+    .pay-badge.lunas { background: rgba(34,197,94,0.12); color: #16a34a; }
+    .pay-badge.pending-pay { background: rgba(239,68,68,0.12); color: #dc2626; }
+
+    .action-btn { padding: 5px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; margin-right: 4px; }
+    .action-btn.view { background: rgba(74,144,217,0.1); color: var(--light-blue); }
+    .action-btn.view:hover { background: var(--light-blue); color: #fff; }
+    .action-btn.invoice { background: rgba(232,93,4,0.1); color: var(--accent); }
+    .action-btn.invoice:hover { background: var(--accent); color: #fff; }
+    .action-btn.return-car { background: rgba(34,197,94,0.1); color: #16a34a; }
+    .action-btn.return-car:hover { background: var(--green); color: #fff; }
+    .action-btn.delete { background: rgba(239,68,68,0.1); color: var(--red); }
+    .action-btn.delete:hover { background: var(--red); color: #fff; }
+
+    /* VEHICLE MONITOR */
+    .monitor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+    .monitor-card { background: #fff; border-radius: var(--card-radius); padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-left: 4px solid #e0e0e0; }
+    .monitor-card.aktif { border-left-color: var(--green); }
+    .monitor-card.terlambat { border-left-color: var(--red); }
+    .monitor-card.tersedia { border-left-color: var(--light-blue); }
+    .monitor-card.belum { border-left-color: var(--yellow); }
+    .monitor-card h4 { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+    .monitor-card .pemesan { font-size: 12px; color: #888; margin-bottom: 12px; }
+    .monitor-meta { display: flex; flex-direction: column; gap: 6px; }
+    .monitor-row { display: flex; justify-content: space-between; font-size: 12px; }
+    .monitor-row .key { color: #aaa; }
+    .monitor-row .val { font-weight: 600; color: #444; }
+
+    /* INVOICE MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 300; display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 20px; padding: 0; max-width: 640px; width: 100%; animation: modalIn 0.3s ease; overflow: hidden; }
+    @keyframes modalIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .invoice-header { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); padding: 28px 32px; color: #fff; }
+    .invoice-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .invoice-brand { display: flex; align-items: center; gap: 10px; }
+    .invoice-brand i { font-size: 28px; color: var(--accent); }
+    .invoice-brand h2 { font-size: 20px; font-weight: 800; }
+    .invoice-brand h2 em { color: var(--accent); font-style: normal; }
+    .invoice-no { font-size: 12px; opacity: 0.7; text-align: right; }
+    .invoice-no strong { font-size: 16px; opacity: 1; display: block; }
+    .invoice-title { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+    .invoice-subtitle { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+
+    .invoice-body { padding: 28px 32px; }
+    .invoice-section { margin-bottom: 24px; }
+    .invoice-section h4 { font-size: 12px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; }
+    .invoice-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+    .invoice-row .k { color: #666; }
+    .invoice-row .v { font-weight: 600; color: var(--primary); }
+    .invoice-divider { border: none; border-top: 2px dashed #e0e0e0; margin: 16px 0; }
+    .invoice-total-row { display: flex; justify-content: space-between; padding: 10px 0; }
+    .invoice-total-row .k { font-size: 14px; font-weight: 700; color: var(--primary); }
+    .invoice-total-row .v { font-size: 18px; font-weight: 800; color: var(--accent); }
+    .invoice-total-row.sisa .v { color: var(--red); }
+    .invoice-total-row.lunas .v { color: var(--green); }
+
+    .invoice-qr-section { display: flex; gap: 24px; align-items: center; background: #f8f9fb; border-radius: 12px; padding: 20px; margin-top: 20px; }
+    .invoice-qr-info { flex: 1; }
+    .invoice-qr-info h5 { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+    .invoice-qr-info p { font-size: 12px; color: #888; line-height: 1.6; }
+    #invoiceQrCode { flex-shrink: 0; }
+
+    .invoice-footer-note { background: rgba(232,93,4,0.05); border: 1px solid rgba(232,93,4,0.15); border-radius: 10px; padding: 14px; margin-top: 20px; font-size: 12px; color: #666; }
+
+    .invoice-actions { padding: 20px 32px; border-top: 1px solid #f0f0f0; display: flex; gap: 12px; }
+
+    .btn-primary { padding: 11px 24px; background: linear-gradient(135deg, var(--primary), var(--light-blue)); color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-accent { padding: 11px 24px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+    .btn-accent:hover { opacity: 0.9; }
+    .btn-secondary { padding: 11px 20px; background: #fff; color: var(--primary); border: 2px solid #e0e0e0; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-secondary:hover { border-color: var(--light-blue); }
+
+    /* Toast */
+    .toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.15); animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.5s forwards; display: flex; align-items: center; gap: 10px; }
+    .toast.success { background: linear-gradient(135deg, #16a34a, #22c55e); }
+    .toast.error { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    .toast.info { background: linear-gradient(135deg, var(--primary), var(--light-blue)); }
+    @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateX(100px); } }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #aaa; }
+    .empty-state i { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
+    .empty-state p { font-size: 15px; }
+
+    .filter-row { display: flex; gap: 10px; padding: 16px 24px; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; }
+    .filter-pill { padding: 6px 16px; border-radius: 20px; border: 1.5px solid #e0e0e0; background: #fff; font-size: 12px; font-weight: 500; color: #666; cursor: pointer; transition: all 0.2s; }
+    .filter-pill.active, .filter-pill:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+    .footer { background: #fff; padding: 16px 32px; text-align: center; font-size: 12px; color: #aaa; border-top: 1px solid #f0f0f0; }
+    @media(max-width:1100px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
+    @media print { .sidebar,.topbar,.stats-grid,.admin-tabs,.filter-bar,.table-header,.toast-container{display:none!important;} .main{margin-left:0!important;} .modal-overlay{position:static!important;background:none!important;display:block!important;} .modal{box-shadow:none!important;max-width:100%!important;border-radius:0!important;}
+  
+    
+    /* ===== SIDEBAR MOBILE RESPONSIVE ===== */
+    .hamburger-btn {
+      display: none;
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 300;
+      background: var(--primary, #1a3c6e);
+      border: none;
+      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .hamburger-btn i { color: #fff; font-size: 22px; }
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 149;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar-overlay.open {
+      display: block;
+      opacity: 1;
+    }
+    @media (max-width: 768px) {
+      .hamburger-btn { display: flex; }
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 150 !important;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0 !important; }
+      .topbar { padding-left: 68px !important; }
+      .topbar-search { display: none; }
+    }
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      .two-col { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr !important; }
+      .page-content, .content-area { padding: 16px !important; }
+      .topbar { padding: 10px 16px 10px 68px !important; }
+      .table-wrap, .table-container { overflow-x: auto; }
+      table { min-width: 540px; }
+    }
+</style>
+</head>
+<body>
+  <button class="hamburger-btn" id="hamburgerBtn" aria-label="Buka menu">
+    <i class='bx bx-menu'></i>
+  </button>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <aside class="sidebar">
+  <div class="sidebar-brand"><i class='bx bxs-car'></i><h2>Rental, <em>Easy Car</em></h2></div>
+      <nav class="sidebar-nav">
+      <div class="nav-section-title">Menu Utama</div>
+      <a href="dashboard.html" class="nav-item" data-role="admin"><i class='bx bxs-dashboard'></i> Dashboard</a>
+      <a href="kendaraan.html" class="nav-item"><i class='bx bxs-car'></i> Kendaraan</a>
+      <a href="booking.html" class="nav-item"><i class='bx bxs-calendar-check'></i> Pemesanan Baru</a>
+      <a href="pesanan-saya.html" class="nav-item"><i class='bx bxs-receipt'></i> Pesanan Saya</a>
+      <a href="admin.html" class="nav-item active" data-role="admin"><i class='bx bxs-user-account'></i> Admin Panel</a>
+      <div class="nav-section-title" data-role="admin">Manajemen</div>
+      <a href="promo.html" class="nav-item" data-role="admin"><i class='bx bxs-tag'></i> Promo & Diskon</a>
+      <a href="laporan.html" class="nav-item" data-role="admin"><i class='bx bxs-bar-chart-alt-2'></i> Laporan</a>
+      <a href="pengaturan.html" class="nav-item"><i class='bx bxs-cog'></i> Pengaturan</a>
+    </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div class="user-details">
+        <div class="name" id="sidebarUserName">Admin EasyCar</div>
+        <div class="role" id="sidebarUserRole">Super Admin</div>
+      </div>
+      <button class="logout-btn" onclick="handleLogout()" title="Logout"><i class='bx bx-log-out'></i></button>
+    </div>
+  </div>
+</aside>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h2>Admin Panel</h2>
+      <p>Manajemen pemesanan, invoice & monitoring kendaraan</p>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-primary" onclick="window.location.href='booking.html'" style="font-size:13px;padding:9px 18px;"><i class='bx bx-plus'></i> Pemesanan Baru</button>
+      <button class="notif-btn"><i class='bx bx-bell'></i><span class="notif-badge"></span></button>
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- STATS -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="stat-icon orange"><i class='bx bxs-time'></i></div><div class="stat-info"><h3 id="statAktif">0</h3><p>Sedang Aktif</p></div></div>
+      <div class="stat-card"><div class="stat-icon red"><i class='bx bxs-alarm-exclamation'></i></div><div class="stat-info"><h3 id="statTerlambat">0</h3><p>Terlambat Kembali</p></div></div>
+      <div class="stat-card"><div class="stat-icon green"><i class='bx bxs-check-circle'></i></div><div class="stat-info"><h3 id="statSelesai">0</h3><p>Selesai Hari Ini</p></div></div>
+      <div class="stat-card"><div class="stat-icon blue"><i class='bx bxs-wallet'></i></div><div class="stat-info"><h3 id="statPendapatan">Rp 0</h3><p>Total Pendapatan</p></div></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchTab('pemesanan')"><i class='bx bxs-calendar'></i> Manajemen Pemesanan</button>
+      <button class="admin-tab" onclick="switchTab('monitoring')"><i class='bx bxs-map-alt'></i> Monitoring Kendaraan</button>
+      <button class="admin-tab" onclick="switchTab('pengembalian')"><i class='bx bxs-car'></i> Pengembalian</button>
+    </div>
+
+    <!-- TAB: PEMESANAN -->
+    <div class="tab-panel active" id="tab-pemesanan">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>📋 Daftar Semua Pemesanan</h3>
+          <div class="table-search">
+            <i class='bx bx-search'></i>
+            <input type="text" id="searchInput" placeholder="Cari ID, nama, kendaraan..." oninput="renderTable()">
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-pill active" onclick="filterStatus('all', this)">Semua</div>
+          <div class="filter-pill" onclick="filterStatus('Aktif', this)">Aktif</div>
+          <div class="filter-pill" onclick="filterStatus('Belum Mulai', this)">Belum Mulai</div>
+          <div class="filter-pill" onclick="filterStatus('Terlambat', this)">Terlambat</div>
+          <div class="filter-pill" onclick="filterStatus('Selesai', this)">Selesai</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Booking</th>
+                <th>Pelanggan</th>
+                <th>Kendaraan</th>
+                <th>Tanggal</th>
+                <th>Durasi</th>
+                <th>Total</th>
+                <th>Status Booking</th>
+                <th>Status Bayar</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="bookingTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <i class='bx bxs-calendar-x'></i>
+          <p>Belum ada data pemesanan.<br><a href="booking.html" style="color:var(--light-blue);font-weight:600;">+ Buat Pemesanan Baru</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MONITORING -->
+    <div class="tab-panel" id="tab-monitoring">
+      <div style="margin-bottom:20px;">
+        <h3 style="font-size:18px;font-weight:700;color:var(--primary);margin-bottom:4px;">🗺️ Status Kendaraan Realtime</h3>
+        <p style="font-size:13px;color:#888;">Monitor status setiap kendaraan secara langsung</p>
+      </div>
+      <div class="monitor-grid" id="monitorGrid"></div>
+    </div>
+
+    <!-- TAB: PENGEMBALIAN -->
+    <div class="tab-panel" id="tab-pengembalian">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>🔄 Proses Pengembalian Kendaraan</h3>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Booking</th>
+                <th>Pelanggan</th>
+                <th>Kendaraan</th>
+                <th>Tgl Selesai</th>
+                <th>Status</th>
+                <th>Deposit Utama</th>
+                <th>Deposit E-Tilang</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="returnTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="emptyReturn" style="display:none;">
+          <i class='bx bxs-car'></i>
+          <p>Tidak ada kendaraan yang perlu diproses pengembalian.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <footer class="footer">&copy; 2026 EasyCar — Admin Panel. All rights reserved.</footer>
+</div>
+
+<!-- RETURN MODAL -->
+<div id="returnModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;padding:28px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h3 style="font-size:18px;font-weight:700;color:#1a3c6e;">🔄 Proses Pengembalian Kendaraan</h3>
+      <button onclick="closeReturnModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;">✕</button>
+    </div>
+    <div style="background:#f0f4f8;border-radius:12px;padding:16px;margin-bottom:18px;font-size:13px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><span style="color:#888;">ID Booking</span><br><strong id="rmBookingId">–</strong></div>
+        <div><span style="color:#888;">Kendaraan</span><br><strong id="rmKendaraan">–</strong></div>
+        <div><span style="color:#888;">Pelanggan</span><br><strong id="rmPelanggan">–</strong></div>
+        <div><span style="color:#888;">Tgl Seharusnya Kembali</span><br><strong id="rmTglSelesai">–</strong></div>
+      </div>
+    </div>
+    <div style="background:rgba(239,68,68,0.06);border:1.5px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px;margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+        <span>Hari Terlambat:</span><strong id="rmHariTelat" style="color:#dc2626;">0 hari</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+        <span>Denda Otomatis:</span><strong id="rmDendaAuto">Rp 0</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px;">
+        <label>Denda/Biaya Tambahan (Rp):</label>
+        <input type="number" id="rmDendaTambahan" value="0" min="0" style="width:160px;padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;" oninput="updateTotalDenda(parseInt(document.getElementById('rmDendaAuto').textContent.replace(/[^0-9]/g,''))||0)" />
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;padding-top:8px;border-top:1px solid rgba(239,68,68,0.2);">
+        <span>TOTAL DENDA:</span><span id="rmTotalDenda" style="color:#dc2626;">Rp 0</span>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#555;">Kondisi Kendaraan</label>
+      <select id="rmKondisi" style="width:100%;margin-top:6px;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-family:inherit;">
+        <option value="Baik">Baik – Tidak ada kerusakan</option>
+        <option value="Rusak Ringan">Rusak Ringan – Ada lecet/kerusakan kecil</option>
+        <option value="Rusak Berat">Rusak Berat – Kerusakan signifikan</option>
+      </select>
+    </div>
+    <div style="margin-bottom:18px;">
+      <label style="font-size:12px;font-weight:600;color:#555;">Keterangan Tambahan</label>
+      <textarea id="rmKet" rows="3" placeholder="Catatan kondisi, keterangan denda, dll..." style="width:100%;margin-top:6px;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="processReturn()" style="flex:1;padding:12px;background:#1a3c6e;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">✅ Konfirmasi Pengembalian</button>
+      <button onclick="closeReturnModal()" style="padding:12px 20px;background:#f1f5f9;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE MODAL -->
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal" id="invoiceContent">
+    <div class="invoice-header">
+      <div class="invoice-header-top">
+        <div class="invoice-brand"><i class='bx bxs-car'></i><h2>Easy<em>Car</em></h2></div>
+        <div class="invoice-no">
+          No. Invoice<br>
+          <strong id="invNo">—</strong>
+        </div>
+      </div>
+      <div class="invoice-title">INVOICE PEMESANAN</div>
+      <div class="invoice-subtitle" id="invDate">—</div>
+    </div>
+    <div class="invoice-body">
+      <div class="invoice-section">
+        <h4>Data Pemesan</h4>
+        <div class="invoice-row"><span class="k">Nama</span><span class="v" id="invName">—</span></div>
+        <div class="invoice-row"><span class="k">No. KTP</span><span class="v" id="invKtp">—</span></div>
+        <div class="invoice-row"><span class="k">No. HP</span><span class="v" id="invPhone">—</span></div>
+        <div class="invoice-row"><span class="k">Alamat</span><span class="v" id="invAddr">—</span></div>
+      </div>
+      <div class="invoice-section">
+        <h4>Detail Sewa</h4>
+        <div class="invoice-row"><span class="k">Kendaraan</span><span class="v" id="invCar">—</span></div>
+        <div class="invoice-row"><span class="k">Tanggal Sewa</span><span class="v" id="invDates">—</span></div>
+        <div class="invoice-row"><span class="k">Durasi</span><span class="v" id="invDays">—</span></div>
+        <div class="invoice-row"><span class="k">Harga/Hari</span><span class="v" id="invRate">—</span></div>
+        <div class="invoice-row"><span class="k">Jenis Jaminan</span><span class="v" id="invJaminan">—</span></div>
+      </div>
+      <hr class="invoice-divider">
+      <div class="invoice-total-row"><span class="k">Total Biaya Sewa</span><span class="v" id="invTotalSewa">—</span></div>
+      <div class="invoice-total-row"><span class="k">DP / Deposit Dibayar</span><span class="v" id="invDPBayar">—</span></div>
+      <div class="invoice-total-row"><span class="k">Deposit E-Tilang</span><span class="v">Rp 500.000</span></div>
+      <div class="invoice-total-row sisa"><span class="k">Sisa Pembayaran</span><span class="v" id="invSisa">—</span></div>
+
+      <div class="invoice-qr-section">
+        <div class="invoice-qr-info">
+          <h5>🔳 QR Pelunasan</h5>
+          <p>Scan QR ini untuk melunasi sisa pembayaran. Bayar sebelum pengambilan kendaraan.</p>
+          <p style="margin-top:8px;font-weight:700;color:var(--accent)" id="invSisaQR">—</p>
+        </div>
+        <div id="invoiceQrCode"></div>
+      </div>
+
+      <div class="invoice-footer-note">
+        ⚠️ Pengambilan kendaraan hanya diizinkan setelah <strong>pembayaran lunas</strong> dan menunjukkan struk pembayaran asli.
+      </div>
+    </div>
+    <div class="invoice-actions">
+      <button class="btn-accent" onclick="window.print()"><i class='bx bx-printer'></i> Cetak</button>
+      <button class="btn-secondary" onclick="closeInvoice()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../services/supabase.js"></script>
+<script>
+// ===== STATE =====
+let allBookings = [];
+let currentFilter = 'all';
+let activeTab = 'pemesanan';
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', async () => {
+  // Guard: hanya admin
+  const user = await requireAdmin();
+  if (!user) return;
+  renderSidebar(user);
+
+  // Load pemesanan dari Supabase
+  const { data: dbBookings, error } = await supabase
+    .from('pemesanan')
+    .select(`
+      id, kode_booking, nama_pemesan, email_pemesan, telepon_pemesan,
+      tanggal_mulai, tanggal_selesai, durasi_hari, total_harga, uang_muka,
+      status, status_pembayaran, metode_pembayaran, catatan, created_at,
+      kendaraan_id,
+      kendaraan:kendaraan_id (nama, merk, harga_per_hari)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (!error) {
+    // Kalau kosong (semua dihapus), tampilkan kosong — JANGAN fallback ke demo
+    const mapped = (dbBookings || []).map(p => ({
+      id: p.kode_booking,
+      car: {
+        brand: p.kendaraan?.merk || 'N/A',
+        name: p.kendaraan?.nama || 'N/A',
+        price: p.kendaraan?.harga_per_hari || 0,
+        hargaMobil: 0
+      },
+      dateStart: p.tanggal_mulai,
+      dateEnd: p.tanggal_selesai,
+      days: p.durasi_hari || 1,
+      customer: {
+        name: p.nama_pemesan,
+        phone: p.telepon_pemesan,
+        email: p.email_pemesan,
+        ktp: '-', addr: '-'
+      },
+      jaminanType: 'non-kendaraan',
+      dpAmount: p.uang_muka || 0,
+      totalBayar: p.total_harga || 0,
+      paymentMethod: p.metode_pembayaran || '-',
+      status: p.status,
+      paymentStatus: p.status_pembayaran,
+      createdAt: p.created_at,
+      _supabaseId: p.id,
+      _kendaraanId: p.kendaraan_id || null
+    }));
+    allBookings = mapped;
+  } else {
+    // Error koneksi Supabase — jangan tampilkan data demo, tapi tunjukkan error
+    console.error('Supabase load error:', error.message);
+    showToast('Gagal memuat data: ' + error.message, 'error');
+    allBookings = [];
+  }
+
+  updateStats();
+  renderTable();
+  renderMonitor();
+  renderReturn();
+  // Auto-sync: pastikan status kendaraan di DB konsisten dengan booking aktif
+  // Ini fix self-heal jika booking dihapus manual dari Supabase dashboard
+  syncKendaraanStatus();
+});
+
+// ===== STATS =====
+function updateStats() {
+  const aktif = allBookings.filter(b => b.status === 'Aktif').length;
+  const terlambat = allBookings.filter(b => b.status === 'Terlambat').length;
+  const selesai = allBookings.filter(b => b.status === 'Selesai').length;
+  const pendapatan = allBookings.reduce((s, b) => s + (b.car.price * b.days), 0);
+  document.getElementById('statAktif').textContent = aktif;
+  document.getElementById('statTerlambat').textContent = terlambat;
+  document.getElementById('statSelesai').textContent = selesai;
+  document.getElementById('statPendapatan').textContent = 'Rp ' + (pendapatan/1000000).toFixed(1) + 'jt';
+}
+
+// ===== TABLE =====
+function renderTable() {
+  const q = (document.getElementById('searchInput').value || '').toLowerCase();
+  let data = allBookings.filter(b => {
+    const match = b.id.toLowerCase().includes(q) ||
+      b.customer.name.toLowerCase().includes(q) ||
+      b.car.name.toLowerCase().includes(q);
+    const statusMatch = currentFilter === 'all' || b.status === currentFilter;
+    return match && statusMatch;
+  });
+
+  const tbody = document.getElementById('bookingTableBody');
+  if (data.length === 0) {
+    tbody.innerHTML = '';
+    document.getElementById('emptyState').style.display = 'block';
+    return;
+  }
+  document.getElementById('emptyState').style.display = 'none';
+
+  tbody.innerHTML = data.map(b => `
+    <tr>
+      <td><strong style="color:var(--primary)">${b.id}</strong></td>
+      <td>
+        <div style="font-weight:600">${b.customer.name}</div>
+        <div style="font-size:11px;color:#aaa">${b.customer.phone}</div>
+      </td>
+      <td>
+        <div style="font-weight:600">${b.car.brand} ${b.car.name}</div>
+        <div style="font-size:11px;color:#aaa">${b.jaminanType === 'kendaraan' ? '🚗 Jaminan Kendaraan' : '💵 Jaminan Deposit'}</div>
+      </td>
+      <td style="font-size:12px">
+        ${formatDate(b.dateStart)}<br>→ ${formatDate(b.dateEnd)}
+      </td>
+      <td>${b.days} hari</td>
+      <td style="font-weight:700;color:var(--accent)">${formatRp(b.car.price * b.days)}</td>
+      <td><span class="status-badge ${b.status.toLowerCase().replace(' ','-')}">${b.status}</span></td>
+      <td><span class="pay-badge ${b.paymentStatus === 'Lunas' || b.paymentStatus === 'Lunas Full' ? 'lunas' : b.paymentStatus === 'DP' || b.paymentStatus === 'Lunas DP' ? 'dp' : 'pending-pay'}">${b.paymentStatus}</span></td>
+      <td>
+        <button class="action-btn view" onclick='showDetail(${JSON.stringify(b).replace(/'/g,"&#39;")})' title="Detail"><i class='bx bx-show'></i></button>
+        <button class="action-btn invoice" onclick='openInvoice(${JSON.stringify(b).replace(/'/g,"&#39;")})' title="Invoice"><i class='bx bx-file'></i> Invoice</button>
+        <button class="action-btn" style="background:#4a90d9;color:#fff;" onclick='openEditBooking(${JSON.stringify(b).replace(/'/g,"&#39;")})' title="Edit Pemesanan"><i class='bx bx-edit'></i> Edit</button>
+        <button class="action-btn" style="background:#ef4444;color:#fff;" onclick="confirmDeleteBooking('${b.id}','${b._supabaseId||''}')" title="Hapus Pemesanan"><i class='bx bx-trash'></i> Hapus</button>
+        ${b.status === 'Aktif' || b.status === 'Terlambat' ? `<button class="action-btn return-car" onclick="processReturn('${b.id}')"><i class='bx bx-undo'></i> Kembalikan</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterStatus(status, el) {
+  currentFilter = status;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+// ===== MONITOR =====
+function renderMonitor() {
+  const CARS_BASE = [
+    { id:1, brand:'Toyota', name:'Avanza 1.3 E MT' },
+    { id:2, brand:'Honda', name:'HR-V 1.5 RS CVT' },
+    { id:3, brand:'Mitsubishi', name:'Xpander Cross AT' },
+    { id:4, brand:'Suzuki', name:'Ertiga 1.5 GX AT' },
+    { id:5, brand:'Toyota', name:'Innova Zenix HV' },
+    { id:6, brand:'Daihatsu', name:'Terios R Deluxe' },
+  ];
+
+  const monitorData = CARS_BASE.map(car => {
+    const booking = allBookings.find(b => b.car.name === car.name && (b.status === 'Aktif' || b.status === 'Terlambat'));
+    if (booking) {
+      return { ...car, status: booking.status, booking };
+    }
+    return { ...car, status: 'Tersedia', booking: null };
+  });
+
+  document.getElementById('monitorGrid').innerHTML = monitorData.map(item => {
+    const cls = item.status === 'Aktif' ? 'aktif' : item.status === 'Terlambat' ? 'terlambat' : 'tersedia';
+    const icon = item.status === 'Aktif' ? '🟢' : item.status === 'Terlambat' ? '🔴' : '🔵';
+    return `
+      <div class="monitor-card ${cls}">
+        <h4>${item.brand} ${item.name}</h4>
+        <div class="pemesan">${item.booking ? `Pemesan: ${item.booking.customer.name}` : 'Tidak ada pemesan'}</div>
+        <div class="monitor-meta">
+          <div class="monitor-row"><span class="key">Status</span><span class="val">${icon} ${item.status}</span></div>
+          ${item.booking ? `
+          <div class="monitor-row"><span class="key">Tgl Selesai</span><span class="val">${formatDate(item.booking.dateEnd)}</span></div>
+          <div class="monitor-row"><span class="key">Sisa Hari</span><span class="val ${item.status==='Terlambat'?'style="color:var(--red)"':''}">${calcSisaHari(item.booking.dateEnd)}</span></div>
+          <div class="monitor-row"><span class="key">Jaminan</span><span class="val">${item.booking.jaminanType==='kendaraan'?'Kendaraan':'Non-Kendaraan'}</span></div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function calcSisaHari(endDate) {
+  const diff = Math.ceil((new Date(endDate) - new Date()) / (1000*60*60*24));
+  if (diff < 0) return `${Math.abs(diff)} hari terlambat`;
+  if (diff === 0) return 'Hari ini';
+  return `${diff} hari lagi`;
+}
+
+// ===== RETURN =====
+// Tarif denda (bisa dikonfigurasi dari pengaturan)
+function getDendaTarif() {
+  const cfg = JSON.parse(localStorage.getItem('easycar_settings') || '{}');
+  return {
+    d1: Number(cfg.denda?.d1 || 50000),
+    d2: Number(cfg.denda?.d2 || 75000),
+    d3: Number(cfg.denda?.d3 || 100000)
+  };
+}
+
+function hitungDenda(dateEndStr) {
+  const dateEnd = new Date(dateEndStr);
+  const now = new Date();
+  dateEnd.setHours(0,0,0,0); now.setHours(0,0,0,0);
+  const diffMs = now - dateEnd;
+  const hariTelat = Math.max(0, Math.floor(diffMs / 86400000));
+  if (hariTelat === 0) return { hariTelat: 0, denda: 0 };
+  const tarif = getDendaTarif();
+  let denda = 0;
+  if (hariTelat <= 1) denda = hariTelat * tarif.d1;
+  else if (hariTelat <= 3) denda = hariTelat * tarif.d2;
+  else denda = hariTelat * tarif.d3;
+  return { hariTelat, denda };
+}
+
+function renderReturn() {
+  // Tampilkan semua booking: Dikonfirmasi (belum diambil), Aktif, Terlambat
+  const eligible = allBookings.filter(b => ['Dikonfirmasi','Aktif','Terlambat'].includes(b.status));
+  const tbody = document.getElementById('returnTableBody');
+
+  if (eligible.length === 0) {
+    tbody.innerHTML = '';
+    document.getElementById('emptyReturn').style.display = 'block';
+    return;
+  }
+  document.getElementById('emptyReturn').style.display = 'none';
+
+  tbody.innerHTML = eligible.map(b => {
+    const { hariTelat, denda } = hitungDenda(b.dateEnd);
+    const statusNow = hariTelat > 0 && b.status === 'Aktif' ? 'Terlambat' : b.status;
+    const statusCls = statusNow === 'Terlambat' ? 'terlambat' : statusNow === 'Aktif' ? 'aktif' : 'info';
+    const dendaHtml = denda > 0
+      ? `<span style="color:#dc2626;font-weight:700;">${formatRp(denda)} <small>(${hariTelat}hr telat)</small></span>`
+      : `<span style="color:#22c55e;">Tidak ada</span>`;
+
+    const btnAmbil = b.status === 'Dikonfirmasi'
+      ? `<button class="action-btn" style="background:rgba(74,144,217,0.1);color:#2563eb;" onclick="processPickup('${b.id}')"><i class='bx bx-car'></i> Konfirmasi Diambil</button>`
+      : '';
+    const btnKembali = (b.status === 'Aktif' || statusNow === 'Terlambat')
+      ? `<button class="action-btn return-car" onclick="openReturnModal('${b.id}')"><i class='bx bx-undo'></i> Proses Kembali</button>`
+      : '';
+
+    return `<tr>
+      <td><strong>${b.id}</strong></td>
+      <td>${b.customer.name}</td>
+      <td>${b.car.brand} ${b.car.name}</td>
+      <td>${formatDate(b.dateEnd)}</td>
+      <td><span class="status-badge ${statusCls}">${statusNow}</span></td>
+      <td>${dendaHtml}</td>
+      <td style="font-size:12px;color:#888;">7 hari setelah kembali</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">${btnAmbil}${btnKembali}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== PICKUP: Konfirmasi kendaraan sudah diambil pelanggan =====
+async function processPickup(id) {
+  const idx = allBookings.findIndex(b => b.id === id);
+  if (idx === -1) return;
+  if (!confirm(`Konfirmasi kendaraan ${allBookings[idx].car.name} sudah DIAMBIL oleh ${allBookings[idx].customer.name}?`)) return;
+
+  allBookings[idx].status = 'Aktif';
+
+  const item = allBookings[idx];
+  if (item._supabaseId) {
+    await supabase.from('pemesanan').update({ status: 'Aktif' }).eq('id', item._supabaseId);
+    // Update status kendaraan menjadi Disewa
+    if (item._kendaraanId) {
+      await supabase.from('kendaraan').update({ status: 'Disewa' }).eq('id', item._kendaraanId);
+    }
+  }
+
+  showToast(`✅ Kendaraan ${item.car.name} dikonfirmasi sudah diambil. Status: Aktif.`, 'success');
+  updateStats(); renderTable(); renderMonitor(); renderReturn();
+}
+
+// ===== RETURN MODAL: Proses pengembalian dengan denda =====
+let _returnId = null;
+function openReturnModal(id) {
+  const b = allBookings.find(b => b.id === id);
+  if (!b) return;
+  _returnId = id;
+  const { hariTelat, denda } = hitungDenda(b.dateEnd);
+
+  const modal = document.getElementById('returnModal');
+  document.getElementById('rmBookingId').textContent = b.id;
+  document.getElementById('rmKendaraan').textContent = b.car.brand + ' ' + b.car.name;
+  document.getElementById('rmPelanggan').textContent = b.customer.name;
+  document.getElementById('rmTglSelesai').textContent = formatDate(b.dateEnd);
+  document.getElementById('rmHariTelat').textContent = hariTelat + ' hari';
+  document.getElementById('rmHariTelat').style.color = hariTelat > 0 ? '#dc2626' : '#22c55e';
+  document.getElementById('rmDendaAuto').textContent = formatRp(denda);
+  document.getElementById('rmDendaTambahan').value = 0;
+  document.getElementById('rmKondisi').value = 'Baik';
+  document.getElementById('rmKet').value = '';
+  updateTotalDenda(denda);
+
+  modal.style.display = 'flex';
+}
+
+function updateTotalDenda(dendaAuto) {
+  const tambahan = Number(document.getElementById('rmDendaTambahan').value) || 0;
+  const total = (dendaAuto || 0) + tambahan;
+  document.getElementById('rmTotalDenda').textContent = formatRp(total);
+  document.getElementById('rmTotalDenda').style.color = total > 0 ? '#dc2626' : '#22c55e';
+}
+
+function closeReturnModal() {
+  document.getElementById('returnModal').style.display = 'none';
+  _returnId = null;
+}
+
+async function processReturn(id) {
+  const realId = id || _returnId;
+  const idx = allBookings.findIndex(b => b.id === realId);
+  if (idx === -1) return;
+
+  const b = allBookings[idx];
+  const { hariTelat, denda: dendaAuto } = hitungDenda(b.dateEnd);
+  const dendaTambahan = Number(document.getElementById('rmDendaTambahan')?.value) || 0;
+  const kondisi = document.getElementById('rmKondisi')?.value || 'Baik';
+  const ket = document.getElementById('rmKet')?.value || '';
+  const totalDenda = dendaAuto + dendaTambahan;
+
+  allBookings[idx].status = 'Selesai';
+  allBookings[idx].paymentStatus = 'Lunas';
+  allBookings[idx].returnedAt = new Date().toISOString();
+
+  const item = allBookings[idx];
+  if (item._supabaseId) {
+    await supabase.from('pemesanan').update({
+      status: 'Selesai',
+      status_pembayaran: 'Lunas'
+    }).eq('id', item._supabaseId);
+
+    await supabase.from('pengembalian').insert({
+      pemesanan_id: item._supabaseId,
+      tanggal_kembali: new Date().toISOString(),
+      kondisi_kendaraan: kondisi,
+      biaya_tambahan: totalDenda,
+      keterangan: ket || (hariTelat > 0 ? `Terlambat ${hariTelat} hari. Denda: ${formatRp(totalDenda)}` : 'Pengembalian normal')
+    });
+
+    // Kembalikan status kendaraan menjadi Tersedia
+    if (item._kendaraanId) {
+      await supabase.from('kendaraan').update({ status: 'Tersedia' }).eq('id', item._kendaraanId);
+    }
+  }
+
+  closeReturnModal();
+  const dendaMsg = totalDenda > 0 ? ` | Denda: ${formatRp(totalDenda)}` : '';
+  showToast(`✅ ${item.car.name} berhasil dikembalikan${dendaMsg}. Deposit E-tilang: 7 hari.`, 'success');
+  updateStats();
+  renderTable();
+  renderMonitor();
+  renderReturn();
+}
+
+// ===== INVOICE =====
+function openInvoice(b) {
+  const totalSewa = b.car.price * b.days;
+  const sisa = totalSewa - b.dpAmount + 500000;
+
+  document.getElementById('invNo').textContent = b.id;
+  document.getElementById('invDate').textContent = `Diterbitkan: ${formatDate(b.createdAt || new Date())}`;
+  document.getElementById('invName').textContent = b.customer.name;
+  document.getElementById('invKtp').textContent = b.customer.ktp;
+  document.getElementById('invPhone').textContent = b.customer.phone;
+  document.getElementById('invAddr').textContent = b.customer.addr;
+  document.getElementById('invCar').textContent = `${b.car.brand} ${b.car.name}`;
+  document.getElementById('invDates').textContent = `${formatDate(b.dateStart)} → ${formatDate(b.dateEnd)}`;
+  document.getElementById('invDays').textContent = `${b.days} hari`;
+  document.getElementById('invRate').textContent = formatRp(b.car.price);
+  document.getElementById('invJaminan').textContent = b.jaminanType === 'kendaraan' ? 'Kendaraan (DP)' : 'Non-Kendaraan (Deposit)';
+  document.getElementById('invTotalSewa').textContent = formatRp(totalSewa);
+  document.getElementById('invDPBayar').textContent = formatRp(b.dpAmount);
+  document.getElementById('invSisa').textContent = formatRp(Math.max(0, sisa));
+  document.getElementById('invSisaQR').textContent = `Sisa: ${formatRp(Math.max(0, sisa))}`;
+
+  // QR for pelunasan
+  document.getElementById('invoiceQrCode').innerHTML = '';
+  new QRCode(document.getElementById('invoiceQrCode'), {
+    text: `EASYCAR-PELUNASAN|${b.id}|${Math.max(0, sisa)}`,
+    width: 120, height: 120,
+    colorDark: '#1a3c6e', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  document.getElementById('invoiceModal').classList.add('open');
+}
+
+function closeInvoice() { document.getElementById('invoiceModal').classList.remove('open'); }
+
+function showDetail(b) {
+  showToast(`${b.id} — ${b.customer.name} | Status: ${b.status}`, 'info');
+}
+
+// ===== TAB SWITCH =====
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ===== UTILS =====
+function formatRp(n) { return 'Rp ' + Math.round(n).toLocaleString('id-ID'); }
+function formatDate(d) { return new Date(d).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }); }
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class='bx ${type==='success'?'bx-check-circle':type==='error'?'bx-x-circle':'bx-info-circle'}'></i> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+</script>
+
+<!-- ===== MODAL EDIT PEMESANAN ===== -->
+<div class="modal-overlay" id="editBookingModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:400;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;padding:32px;max-width:580px;width:100%;max-height:90vh;overflow-y:auto;">
+    <h3 style="font-size:20px;font-weight:700;color:#1a3c6e;margin-bottom:6px;"><i class='bx bx-edit' style="color:#4a90d9;vertical-align:middle;margin-right:8px;"></i>Edit Pemesanan</h3>
+    <p id="editBookingSubtitle" style="font-size:12px;color:#aaa;margin-bottom:20px;">—</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3c6e;">Nama Pemesan</label>
+        <input id="ebNama" type="text" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3c6e;">No. HP</label>
+        <input id="ebPhone" type="text" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3c6e;">Tanggal Mulai</label>
+        <input id="ebStart" type="date" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3c6e;">Tanggal Selesai</label>
+        <input id="ebEnd" type="date" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3c6e;">Status Pemesanan</label>
+        <select id="ebStatus" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+          <option>Menunggu</option>
+          <option>Dikonfirmasi</option>
+          <option>Aktif</option>
+          <option>Selesai</option>
+          <option>Dibatalkan</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3c6e;">Status Pembayaran</label>
+        <select id="ebPayStatus" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+          <option value="Belum Bayar">Belum Bayar</option>
+          <option value="DP">DP (Sudah Bayar Sebagian)</option>
+          <option value="Lunas">Lunas</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3c6e;">Metode Pembayaran</label>
+        <select id="ebMetode" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+          <option>Transfer Bank</option>
+          <option>Cash</option>
+          <option>QRIS</option>
+          <option>Kartu Kredit</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3c6e;">Uang Muka (Rp)</label>
+        <input id="ebUangMuka" type="number" min="0" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;">
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:14px;">
+      <label style="font-size:13px;font-weight:600;color:#1a3c6e;">Catatan</label>
+      <textarea id="ebCatatan" rows="2" style="padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;resize:vertical;"></textarea>
+    </div>
+    <div id="editBookingError" style="display:none;color:#e85d04;font-size:13px;margin-top:10px;padding:10px 14px;background:rgba(232,93,4,0.06);border-radius:8px;"></div>
+    <div style="display:flex;gap:12px;margin-top:22px;">
+      <button onclick="closeEditBooking()" style="flex:1;padding:11px;border:2px solid #e0e0e0;background:#fff;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Batal</button>
+      <button id="btnSimpanEditBooking" onclick="simpanEditBooking()" style="flex:2;padding:11px;background:linear-gradient(135deg,#1a3c6e,#4a90d9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;"><i class='bx bx-save'></i> Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL KONFIRMASI HAPUS PEMESANAN ===== -->
+<div id="deleteBookingModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:400;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;padding:32px;max-width:420px;width:100%;text-align:center;">
+    <i class='bx bxs-trash' style="font-size:56px;color:#ef4444;display:block;margin-bottom:12px;"></i>
+    <h3 style="font-size:20px;font-weight:700;color:#1a3c6e;margin-bottom:8px;">Hapus Pemesanan?</h3>
+    <p id="deleteBookingMsg" style="font-size:14px;color:#666;margin-bottom:22px;">Tindakan ini tidak bisa dibatalkan.</p>
+    <div style="display:flex;gap:12px;">
+      <button onclick="closeDeleteBooking()" style="flex:1;padding:11px;border:2px solid #e0e0e0;background:#fff;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Batal</button>
+      <button id="btnKonfirmasiHapusBooking" onclick="eksekusiHapus()" style="flex:1;padding:11px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== EDIT PEMESANAN =====
+let editBookingTarget = null;
+
+function openEditBooking(b) {
+  editBookingTarget = b;
+  document.getElementById('editBookingSubtitle').textContent = `ID: ${b.id} — ${b.customer.name}`;
+  document.getElementById('ebNama').value = b.customer.name || '';
+  document.getElementById('ebPhone').value = b.customer.phone || '';
+  document.getElementById('ebStart').value = b.dateStart || '';
+  document.getElementById('ebEnd').value = b.dateEnd || '';
+  document.getElementById('ebStatus').value = b.status || 'Menunggu';
+  // Map paymentStatus to DB value
+  const payMap = { 'Lunas Full': 'Lunas', 'Lunas DP': 'DP', 'Lunas': 'Lunas', 'DP': 'DP', 'Belum Bayar': 'Belum Bayar' };
+  document.getElementById('ebPayStatus').value = payMap[b.paymentStatus] || 'Belum Bayar';
+  document.getElementById('ebMetode').value = b.paymentMethod || 'Transfer Bank';
+  document.getElementById('ebUangMuka').value = b.dpAmount || 0;
+  document.getElementById('ebCatatan').value = b.customer.catatan || '';
+  document.getElementById('editBookingError').style.display = 'none';
+  document.getElementById('editBookingModal').style.display = 'flex';
+}
+
+function closeEditBooking() {
+  document.getElementById('editBookingModal').style.display = 'none';
+  editBookingTarget = null;
+}
+
+async function simpanEditBooking() {
+  const errEl = document.getElementById('editBookingError');
+  const btn = document.getElementById('btnSimpanEditBooking');
+  const start = document.getElementById('ebStart').value;
+  const end = document.getElementById('ebEnd').value;
+  if (!start || !end) { errEl.textContent = 'Tanggal mulai dan selesai wajib diisi.'; errEl.style.display='block'; return; }
+  if (new Date(end) <= new Date(start)) { errEl.textContent = 'Tanggal selesai harus setelah tanggal mulai.'; errEl.style.display='block'; return; }
+
+  btn.textContent = 'Menyimpan...'; btn.disabled = true; errEl.style.display='none';
+
+  const payload = {
+    nama_pemesan: document.getElementById('ebNama').value.trim(),
+    telepon_pemesan: document.getElementById('ebPhone').value.trim(),
+    tanggal_mulai: start,
+    tanggal_selesai: end,
+    status: document.getElementById('ebStatus').value,
+    status_pembayaran: document.getElementById('ebPayStatus').value,
+    metode_pembayaran: document.getElementById('ebMetode').value,
+    uang_muka: parseFloat(document.getElementById('ebUangMuka').value) || 0,
+    catatan: document.getElementById('ebCatatan').value.trim() || null,
+  };
+
+  // Update di Supabase jika ada _supabaseId
+  if (editBookingTarget._supabaseId) {
+    const { error } = await supabase.from('pemesanan').update(payload).eq('id', editBookingTarget._supabaseId);
+    if (error) {
+      errEl.textContent = 'Gagal menyimpan: ' + error.message;
+      errEl.style.display = 'block';
+      btn.textContent = 'Simpan Perubahan'; btn.disabled = false;
+      return;
+    }
+  }
+
+  // Update local state
+  const idx = allBookings.findIndex(x => x.id === editBookingTarget.id);
+  if (idx !== -1) {
+    allBookings[idx].customer.name = payload.nama_pemesan;
+    allBookings[idx].customer.phone = payload.telepon_pemesan;
+    allBookings[idx].dateStart = payload.tanggal_mulai;
+    allBookings[idx].dateEnd = payload.tanggal_selesai;
+    allBookings[idx].days = Math.ceil((new Date(end) - new Date(start)) / (1000*60*60*24));
+    allBookings[idx].status = payload.status;
+    allBookings[idx].paymentStatus = payload.status_pembayaran;
+    allBookings[idx].paymentMethod = payload.metode_pembayaran;
+    allBookings[idx].dpAmount = payload.uang_muka;
+  }
+
+  btn.textContent = 'Simpan Perubahan'; btn.disabled = false;
+  closeEditBooking();
+  showToast('Pemesanan berhasil diperbarui!', 'success');
+  updateStats(); renderTable(); renderMonitor(); renderReturn();
+}
+
+// ===== HAPUS PEMESANAN =====
+// Target hapus aktif — disimpan di variabel, bukan reassign onclick (mencegah double-fire bug)
+let _deleteTarget = { code: null, supabaseId: null };
+
+function confirmDeleteBooking(bookingCode, supabaseId) {
+  _deleteTarget = { code: bookingCode, supabaseId: supabaseId };
+  document.getElementById('deleteBookingMsg').textContent = `Pemesanan #${bookingCode} akan dihapus permanen dari sistem.`;
+  document.getElementById('deleteBookingModal').style.display = 'flex';
+}
+
+async function eksekusiHapus() {
+  const { code: bookingCode, supabaseId } = _deleteTarget;
+  if (!bookingCode) return;
+
+  const btn = document.getElementById('btnKonfirmasiHapusBooking');
+  btn.textContent = 'Menghapus...'; btn.disabled = true;
+
+  const targetBooking = allBookings.find(b => b.id === bookingCode);
+
+  // Validasi supabaseId — harus ada dan bukan string 'null'/'undefined'/kosong
+  const validId = supabaseId && supabaseId !== 'null' && supabaseId !== 'undefined' && String(supabaseId).trim() !== '';
+
+  if (validId) {
+    const { error } = await supabase.from('pemesanan').delete().eq('id', supabaseId);
+    if (error) {
+      showToast('Gagal hapus: ' + error.message, 'error');
+      btn.textContent = 'Ya, Hapus'; btn.disabled = false;
+      closeDeleteBooking();
+      return;
+    }
+
+    // Reset status kendaraan jika sedang aktif disewa
+    if (targetBooking && targetBooking._kendaraanId &&
+        (targetBooking.status === 'Aktif' || targetBooking.status === 'Terlambat')) {
+      await supabase.from('kendaraan').update({ status: 'Tersedia' }).eq('id', targetBooking._kendaraanId);
+    }
+
+    // Reload array dari Supabase supaya 100% sinkron dengan DB
+    const { data: fresh, error: fetchErr } = await supabase
+      .from('pemesanan')
+      .select(`
+        id, kode_booking, nama_pemesan, email_pemesan, telepon_pemesan,
+        tanggal_mulai, tanggal_selesai, durasi_hari, total_harga, uang_muka,
+        status, status_pembayaran, metode_pembayaran, catatan, created_at,
+        kendaraan_id,
+        kendaraan:kendaraan_id (nama, merk, harga_per_hari)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (!fetchErr && fresh) {
+      allBookings = fresh.map(p => ({
+        id: p.kode_booking,
+        car: { brand: p.kendaraan?.merk||'N/A', name: p.kendaraan?.nama||'N/A', price: p.kendaraan?.harga_per_hari||0, hargaMobil:0 },
+        dateStart: p.tanggal_mulai, dateEnd: p.tanggal_selesai, days: p.durasi_hari||1,
+        customer: { name: p.nama_pemesan, phone: p.telepon_pemesan, email: p.email_pemesan, ktp:'-', addr:'-' },
+        jaminanType: 'non-kendaraan', dpAmount: p.uang_muka||0, totalBayar: p.total_harga||0,
+        paymentMethod: p.metode_pembayaran||'-', status: p.status, paymentStatus: p.status_pembayaran,
+        createdAt: p.created_at, _supabaseId: p.id, _kendaraanId: p.kendaraan_id||null
+      }));
+    } else {
+      allBookings = allBookings.filter(b => b.id !== bookingCode);
+    }
+  } else {
+    allBookings = allBookings.filter(b => b.id !== bookingCode);
+  }
+
+  _deleteTarget = { code: null, supabaseId: null };
+  btn.textContent = 'Ya, Hapus'; btn.disabled = false;
+  closeDeleteBooking();
+  showToast('Pemesanan #' + bookingCode + ' berhasil dihapus.', 'success');
+  updateStats(); renderTable(); renderMonitor(); renderReturn();
+}
+
+// ===== SYNC STATUS KENDARAAN dari data pemesanan aktif =====
+// Dipakai untuk self-heal: pastikan status kendaraan di DB konsisten dengan booking aktif
+async function syncKendaraanStatus() {
+  // Ambil semua kendaraan
+  const { data: kendaraanList } = await supabase.from('kendaraan').select('id, status');
+  if (!kendaraanList) return;
+
+  // Ambil kendaraan_id yang sedang aktif disewa (Aktif saja, bukan Dikonfirmasi)
+  const activeCarIds = new Set(
+    allBookings.filter(b => b.status === 'Aktif' || b.status === 'Terlambat')
+               .map(b => b._kendaraanId).filter(Boolean)
+  );
+
+  // Untuk tiap kendaraan: kalau di DB 'Disewa' tapi tidak ada booking aktif -> reset ke Tersedia
+  for (const k of kendaraanList) {
+    if (k.status === 'Disewa' && !activeCarIds.has(k.id)) {
+      await supabase.from('kendaraan').update({ status: 'Tersedia' }).eq('id', k.id);
+      console.log(`Auto-reset kendaraan id=${k.id} ke Tersedia (tidak ada booking aktif)`);
+    }
+  }
+}
+
+
+function closeDeleteBooking() {
+  document.getElementById('deleteBookingModal').style.display = 'none';
+}
+
+// Tutup modal klik luar
+document.getElementById('editBookingModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeEditBooking(); });
+document.getElementById('deleteBookingModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeDeleteBooking(); });
+</script>
+
+
+  <script>
+function renderSidebar(user) {
+  if (!user) return;
+  const isAdmin = user.role === 'admin';
+  const initial = user.full_name ? user.full_name[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'U');
+  const nameEl = document.getElementById('sidebarUserName');
+  const roleEl = document.getElementById('sidebarUserRole');
+  const avatarEl = document.getElementById('sidebarAvatar');
+  if (nameEl) nameEl.textContent = user.full_name || user.email || 'User';
+  if (roleEl) roleEl.textContent = isAdmin ? 'Super Admin' : 'Pelanggan';
+  if (avatarEl) avatarEl.textContent = initial;
+  document.querySelectorAll('[data-role="admin"]').forEach(el => {
+    const isNavItem = el.classList.contains('nav-item');
+    el.style.display = isAdmin ? (isNavItem ? 'flex' : 'block') : 'none';
+  });
+}
+</script>
+
+  <script>
+  // ===== HAMBURGER SIDEBAR TOGGLE =====
+  (function() {
+    var btn = document.getElementById('hamburgerBtn');
+    var sidebar = document.querySelector('.sidebar');
+    var overlay = document.getElementById('sidebarOverlay');
+    if (!btn || !sidebar) return;
+    function openSidebar() {
+      sidebar.classList.add('open');
+      if (overlay) { overlay.style.display = 'block'; setTimeout(function(){ overlay.style.opacity = '1'; }, 10); }
+      btn.innerHTML = "<i class='bx bx-x'></i>";
+    }
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      if (overlay) { overlay.style.opacity = '0'; setTimeout(function(){ overlay.style.display = 'none'; }, 300); }
+      btn.innerHTML = "<i class='bx bx-menu'></i>";
+    }
+    btn.addEventListener('click', function() {
+      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+    // Tutup sidebar jika resize ke desktop
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768) closeSidebar();
+    });
+  })();
+  </script>
+</body>
+</html>

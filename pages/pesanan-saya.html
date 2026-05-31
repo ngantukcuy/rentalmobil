@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyCar — Pesanan Saya</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/shared.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { poppins: ['Poppins', 'sans-serif'] },
+          colors: {
+            primary: { DEFAULT: '#1a3c6e', dark: '#0f2347' },
+            accent: { DEFAULT: '#e85d04', light: '#ff7733' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+    .order-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .order-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .filter-chip.active { background: #1a3c6e; color: #fff; border-color: #1a3c6e; }
+    .sidebar-link.active-page { color:#fff!important; border-left-color:#e85d04!important; background:rgba(232,93,4,0.1)!important; }
+    .modal-bg { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- STRUK PRINT — hanya tampil saat print -->
+  <div id="struk-print" style="display:none;"></div>
+
+  <!-- Sidebar injected by sidebar.js -->
+
+  <!-- Invoice Modal -->
+  <div id="invoiceModal" class="fixed inset-0 modal-bg z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <!-- Invoice Header -->
+      <div class="bg-gradient-to-r from-primary-dark to-primary p-6 rounded-t-2xl">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h2 class="text-white font-black text-2xl">Easy<span class="text-orange-400">Car</span></h2>
+            <p class="text-white/60 text-xs">Bukti Pemesanan Kendaraan</p>
+          </div>
+          <button onclick="closeInvoice()" class="text-white/60 hover:text-white w-8 h-8 flex items-center justify-center">
+            <i class='bx bx-x text-2xl'></i>
+          </button>
+        </div>
+        <div class="mt-3">
+          <p class="text-white font-black text-lg tracking-widest" id="invNo">—</p>
+          <p class="text-white/50 text-xs" id="invDate">—</p>
+        </div>
+      </div>
+
+      <!-- Invoice Body -->
+      <div class="p-6 space-y-4">
+        <!-- Customer -->
+        <div>
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Data Pelanggan</p>
+          <div class="space-y-1.5 text-sm">
+            <div class="flex justify-between"><span class="text-gray-400">Nama</span><span class="font-semibold" id="invName">—</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">No. HP</span><span class="font-semibold" id="invPhone">—</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Email</span><span class="font-semibold text-xs" id="invEmail">—</span></div>
+          </div>
+        </div>
+        <hr class="border-gray-100" />
+        <!-- Kendaraan & Tanggal -->
+        <div>
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Detail Pesanan</p>
+          <div class="space-y-1.5 text-sm">
+            <div class="flex justify-between"><span class="text-gray-400">Kendaraan</span><span class="font-semibold" id="invCar">—</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Tanggal</span><span class="font-semibold text-xs" id="invDates">—</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Durasi</span><span class="font-semibold" id="invDays">—</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Harga/hari</span><span class="font-semibold" id="invRate">—</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Jaminan</span><span class="font-semibold text-xs" id="invJaminan">—</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Metode Bayar</span><span class="font-semibold" id="invMetode">—</span></div>
+          </div>
+        </div>
+        <hr class="border-gray-100" />
+        <!-- Total -->
+        <div class="space-y-1.5 text-sm">
+          <div class="flex justify-between"><span class="text-gray-400">Total Sewa</span><span class="font-semibold" id="invTotal">—</span></div>
+          <div class="flex justify-between"><span class="text-gray-400">DP / Deposit</span><span class="font-semibold" id="invDP">—</span></div>
+          <div class="flex justify-between"><span class="text-gray-400">Deposit E-Tilang</span><span class="font-semibold">Rp 500.000</span></div>
+        </div>
+        <div class="bg-primary/5 rounded-xl p-4 flex justify-between items-center">
+          <span class="font-bold text-primary">Sisa Pembayaran</span>
+          <span class="font-black text-primary text-xl" id="invSisa">—</span>
+        </div>
+        <div id="invStatusBox" class="rounded-xl p-3 bg-emerald-50 text-emerald-700 text-sm font-semibold text-center">—</div>
+        <p class="text-xs text-gray-400 text-center">Bawa struk ini saat pengambilan. Tunjukkan bersama KTP & SIM A asli.</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 pb-6 flex gap-3">
+        <button onclick="printCurrentInvoice()" class="flex-1 py-3 rounded-xl bg-accent text-white text-sm font-bold hover:bg-accent-light transition-colors flex items-center justify-center gap-2">
+          <i class='bx bx-printer'></i> Cetak Struk
+        </button>
+        <button onclick="closeInvoice()" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="lg:ml-64 flex flex-col min-h-screen">
+    <header class="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-100 px-4 lg:px-8 py-4">
+      <div class="pl-12 lg:pl-0 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-primary">Pesanan Saya</h2>
+          <p class="text-xs text-gray-400">Riwayat dan status pemesanan kendaraan Anda</p>
+        </div>
+        <a href="booking.html" class="bg-accent text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 hover:bg-accent-light transition-colors">
+          <i class='bx bx-plus'></i> Pesan Baru
+        </a>
+      </div>
+    </header>
+
+    <main class="p-4 lg:p-8 flex-1 fade-in">
+
+      <!-- Stats Row -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+          <p class="text-3xl font-black text-primary" id="statTotal">—</p>
+          <p class="text-xs text-gray-400 mt-1">Total Pesanan</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+          <p class="text-3xl font-black text-blue-500" id="statAktif">—</p>
+          <p class="text-xs text-gray-400 mt-1">Aktif / Proses</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+          <p class="text-3xl font-black text-emerald-500" id="statSelesai">—</p>
+          <p class="text-xs text-gray-400 mt-1">Selesai</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+          <p class="text-xl font-black text-purple-500" id="statNominal">—</p>
+          <p class="text-xs text-gray-400 mt-1">Total Transaksi</p>
+        </div>
+      </div>
+
+      <!-- Filter & Search -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm mb-5 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div class="flex flex-wrap gap-2 flex-1">
+          <button onclick="setFilter('semua', this)" class="filter-chip active text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors">Semua</button>
+          <button onclick="setFilter('Menunggu', this)" class="filter-chip text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors">Menunggu</button>
+          <button onclick="setFilter('Dikonfirmasi', this)" class="filter-chip text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors">Dikonfirmasi</button>
+          <button onclick="setFilter('Aktif', this)" class="filter-chip text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors">Aktif</button>
+          <button onclick="setFilter('Selesai', this)" class="filter-chip text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors">Selesai</button>
+          <button onclick="setFilter('Dibatalkan', this)" class="filter-chip text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 hover:border-primary transition-colors">Dibatalkan</button>
+        </div>
+        <input type="text" id="searchInput" oninput="renderOrders()" placeholder="Cari pesanan..." class="border border-gray-200 rounded-xl px-4 py-2 text-sm w-full sm:w-48 outline-none focus:border-indigo-400" />
+      </div>
+
+      <!-- Order List -->
+      <div id="orderList">
+        <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+          <i class='bx bx-loader-alt text-5xl animate-spin mb-3'></i>
+          <p>Memuat pesanan...</p>
+        </div>
+      </div>
+
+    </main>
+    <footer class="text-center text-gray-400 text-xs py-5">&copy; 2026 EasyCar</footer>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../services/supabase.js"></script>
+  <script src="../components/sidebar.js"></script>
+  <script src="../utils/ui.js"></script>
+  <script src="../utils/print.js"></script>
+
+  <script>
+    let allOrders = [], kendaraanMap = {}, currentFilter = 'semua', currentUser = null;
+    let currentInvoiceOrder = null; // untuk print struk
+
+    // ─── INIT ───
+    (async () => {
+      initSidebar('pesanan-saya.html');
+      document.querySelectorAll('.sidebar-link').forEach(l => {
+        if (l.href.includes('pesanan-saya.html')) l.classList.add('active-page');
+      });
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = '../pages/index.html'; return; }
+
+      currentUser = await getCurrentUser() || {
+        id: session.user.id,
+        full_name: session.user.user_metadata?.full_name || session.user.email,
+        email: session.user.email, role: 'user'
+      };
+
+      renderSidebarUser(currentUser);
+      document.body.classList.add('loaded');
+
+      await Promise.all([
+        loadKendaraan(),
+        loadOrders(session.user.id)
+      ]);
+    })();
+
+    async function loadKendaraan() {
+      const { data } = await supabase.from('kendaraan').select('id, merk, nama, harga_per_hari, foto_url');
+      if (data) data.forEach(k => { kendaraanMap[k.id] = k; });
+    }
+
+    async function loadOrders(userId) {
+      const { data, error } = await supabase
+        .from('pemesanan').select('*').eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) { showToast('Gagal memuat pesanan: ' + error.message, 'error'); return; }
+      allOrders = data || [];
+      updateStats();
+      renderOrders();
+    }
+
+    function updateStats() {
+      document.getElementById('statTotal').textContent = allOrders.length;
+      document.getElementById('statAktif').textContent = allOrders.filter(o => ['Aktif','Dikonfirmasi','Menunggu'].includes(o.status)).length;
+      document.getElementById('statSelesai').textContent = allOrders.filter(o => o.status === 'Selesai').length;
+      const total = allOrders.filter(o => o.status !== 'Dibatalkan').reduce((s, o) => s + Number(o.total_harga || 0), 0);
+      document.getElementById('statNominal').textContent = formatRupiah(total);
+    }
+
+    function setFilter(val, el) {
+      currentFilter = val;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      renderOrders();
+    }
+
+    function renderOrders() {
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      let filtered = allOrders;
+      if (currentFilter !== 'semua') filtered = filtered.filter(o => o.status === currentFilter);
+      if (search) {
+        filtered = filtered.filter(o =>
+          (o.kode_booking || '').toLowerCase().includes(search) ||
+          (kendaraanMap[o.kendaraan_id]?.nama || '').toLowerCase().includes(search)
+        );
+      }
+
+      const container = document.getElementById('orderList');
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+            <i class='bx bxs-calendar-x text-5xl mb-3 text-gray-200'></i>
+            <h3 class="font-bold text-gray-500 mb-1">Tidak Ada Pesanan</h3>
+            <p class="text-sm mb-5">${currentFilter === 'semua' ? 'Anda belum memiliki riwayat pemesanan.' : `Tidak ada pesanan dengan status "${currentFilter}".`}</p>
+            <a href="booking.html" class="bg-accent text-white font-bold px-6 py-3 rounded-xl text-sm flex items-center gap-2 hover:bg-accent-light transition-colors">
+              <i class='bx bx-plus'></i> Buat Pesanan Baru
+            </a>
+          </div>`;
+        return;
+      }
+      container.innerHTML = `<div class="space-y-4">${filtered.map(renderOrderCard).join('')}</div>`;
+    }
+
+    function renderOrderCard(o) {
+      const car = kendaraanMap[o.kendaraan_id] || {};
+      const days = o.durasi_hari || Math.ceil((new Date(o.tanggal_selesai) - new Date(o.tanggal_mulai)) / (1000*60*60*24));
+      const statusMap = {
+        'Menunggu':    { bg:'bg-amber-50 text-amber-700 border-amber-100', dot:'bg-amber-400', border:'border-l-amber-400' },
+        'Dikonfirmasi':{ bg:'bg-blue-50 text-blue-700 border-blue-100',   dot:'bg-blue-400',  border:'border-l-blue-400' },
+        'Aktif':       { bg:'bg-emerald-50 text-emerald-700 border-emerald-100', dot:'bg-emerald-500', border:'border-l-emerald-500' },
+        'Selesai':     { bg:'bg-gray-100 text-gray-600 border-gray-200',  dot:'bg-gray-400',  border:'border-l-gray-300' },
+        'Dibatalkan':  { bg:'bg-red-50 text-red-600 border-red-100',      dot:'bg-red-400',   border:'border-l-red-400' },
+      };
+      const s = statusMap[o.status] || statusMap['Menunggu'];
+      const canCancel = ['Menunggu','Dikonfirmasi'].includes(o.status);
+
+      return `
+        <div class="order-card bg-white rounded-2xl shadow-sm overflow-hidden border-l-4 ${s.border}">
+          <div class="p-5">
+            <div class="flex items-start justify-between gap-4 mb-4">
+              <div class="flex items-start gap-4">
+                <div class="w-16 h-12 bg-blue-50 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                  ${car.foto_url
+                    ? `<img src="${car.foto_url}" alt="${car.nama}" class="w-full h-full object-contain" onerror="this.style.display='none'">`
+                    : `<i class='bx bxs-car text-2xl text-blue-200'></i>`}
+                </div>
+                <div>
+                  <p class="font-mono text-xs text-gray-400">#${o.kode_booking || '—'}</p>
+                  <p class="font-bold text-primary text-base">${car.merk || ''} ${car.nama || '—'}</p>
+                  <p class="text-xs text-gray-400 mt-0.5">${formatTanggal(o.tanggal_mulai)} → ${formatTanggal(o.tanggal_selesai)} (${days} hari)</p>
+                </div>
+              </div>
+              <div class="flex-shrink-0 text-right">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${s.bg}">
+                  <span class="w-1.5 h-1.5 rounded-full ${s.dot}"></span>
+                  ${o.status}
+                </span>
+                <p class="text-base font-bold text-primary mt-2">${formatRupiah(o.total_harga)}</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs mb-4">
+              <div class="bg-gray-50 rounded-xl p-2.5">
+                <p class="text-gray-400 mb-0.5">Metode Bayar</p>
+                <p class="font-semibold text-gray-700">${o.metode_pembayaran || '—'}</p>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-2.5">
+                <p class="text-gray-400 mb-0.5">Status Bayar</p>
+                <p class="font-semibold text-gray-700">${o.status_pembayaran || '—'}</p>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-2.5">
+                <p class="text-gray-400 mb-0.5">DP / Deposit</p>
+                <p class="font-semibold text-gray-700">${formatRupiah(o.uang_muka || 0)}</p>
+              </div>
+            </div>
+
+            <div class="flex gap-2 flex-wrap">
+              <button onclick="openInvoice('${o.id}')" class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 transition-colors">
+                <i class='bx bx-receipt'></i> Lihat Invoice
+              </button>
+              ${canCancel ? `
+              <button onclick="askCancel('${o.id}','${o.kode_booking}')" class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 transition-colors">
+                <i class='bx bx-x-circle'></i> Batalkan
+              </button>` : ''}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ─── INVOICE ───
+    function openInvoice(id) {
+      const o = allOrders.find(x => x.id === id);
+      if (!o) return;
+      currentInvoiceOrder = o;
+      const car = kendaraanMap[o.kendaraan_id] || {};
+      const days = o.durasi_hari || Math.ceil((new Date(o.tanggal_selesai) - new Date(o.tanggal_mulai)) / (1000*60*60*24));
+      const totalSewa = Number(o.total_harga || 0);
+      const dp = Number(o.uang_muka || 0);
+      const sisa = Math.max(0, totalSewa - dp + 500000);
+
+      document.getElementById('invNo').textContent = o.kode_booking || '—';
+      document.getElementById('invDate').textContent = 'Diterbitkan: ' + new Date().toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'});
+      document.getElementById('invName').textContent = o.nama_pemesan || '—';
+      document.getElementById('invPhone').textContent = o.telepon_pemesan || '—';
+      document.getElementById('invEmail').textContent = o.email_pemesan || '—';
+      document.getElementById('invCar').textContent = `${car.merk || ''} ${car.nama || '—'}`;
+      document.getElementById('invDates').textContent = `${formatTanggal(o.tanggal_mulai)} — ${formatTanggal(o.tanggal_selesai)}`;
+      document.getElementById('invDays').textContent = days + ' hari';
+      document.getElementById('invRate').textContent = car.harga_per_hari ? formatRupiah(Number(car.harga_per_hari)) : '—';
+      document.getElementById('invJaminan').textContent = (o.catatan || '').includes('Non-Kendaraan') ? 'Non-Kendaraan (Deposit)' : 'Kendaraan (DP)';
+      document.getElementById('invMetode').textContent = o.metode_pembayaran || '—';
+      document.getElementById('invTotal').textContent = formatRupiah(totalSewa);
+      document.getElementById('invDP').textContent = formatRupiah(dp);
+      document.getElementById('invSisa').textContent = formatRupiah(sisa);
+
+      const statusBox = document.getElementById('invStatusBox');
+      if (o.status === 'Selesai') {
+        statusBox.textContent = '✅ Pembayaran Lunas — Terima kasih!';
+        statusBox.className = 'rounded-xl p-3 bg-emerald-50 text-emerald-700 text-sm font-semibold text-center';
+      } else if (o.status === 'Dibatalkan') {
+        statusBox.textContent = '❌ Pesanan Dibatalkan';
+        statusBox.className = 'rounded-xl p-3 bg-red-50 text-red-600 text-sm font-semibold text-center';
+      } else {
+        statusBox.textContent = 'DP / Deposit Lunas — Lunasi sisa sebelum pengambilan';
+        statusBox.className = 'rounded-xl p-3 bg-emerald-50 text-emerald-700 text-sm font-semibold text-center';
+      }
+
+      document.getElementById('invoiceModal').classList.remove('hidden');
+    }
+
+    function closeInvoice() {
+      document.getElementById('invoiceModal').classList.add('hidden');
+      currentInvoiceOrder = null;
+    }
+
+    // ─── PRINT STRUK (hanya cetak #struk-print) ───
+    function printCurrentInvoice() {
+      if (!currentInvoiceOrder) return;
+      const o = currentInvoiceOrder;
+      const car = kendaraanMap[o.kendaraan_id] || {};
+      const days = o.durasi_hari || Math.ceil((new Date(o.tanggal_selesai) - new Date(o.tanggal_mulai)) / (1000*60*60*24));
+
+      closeInvoice(); // tutup modal sebelum print
+
+      printStruk({
+        bookingId: o.kode_booking,
+        customerName: o.nama_pemesan,
+        phone: o.telepon_pemesan,
+        email: o.email_pemesan,
+        vehicleName: `${car.merk || ''} ${car.nama || '—'}`,
+        tanggalSewa: o.tanggal_mulai,
+        tanggalKembali: o.tanggal_selesai,
+        durasi: days,
+        hargaPerHari: Number(car.harga_per_hari || 0),
+        subtotal: Number(o.total_harga || 0),
+        diskon: 0,
+        total: Number(o.total_harga || 0),
+        metodePembayaran: o.metode_pembayaran,
+        statusDP: o.status_pembayaran || 'DP',
+        dp: Number(o.uang_muka || 0),
+      });
+    }
+
+    // ─── CANCEL ───
+    let cancelTargetId = null;
+    function askCancel(id, kode) {
+      cancelTargetId = id;
+      showModal({
+        title: 'Batalkan Pesanan',
+        message: `Yakin ingin membatalkan pesanan <strong>#${kode}</strong>? Tindakan ini tidak bisa dibatalkan.`,
+        confirmText: 'Ya, Batalkan',
+        cancelText: 'Kembali',
+        type: 'danger'
+      }).then(async (confirmed) => {
+        if (!confirmed) return;
+        const { error } = await supabase
+          .from('pemesanan')
+          .update({ status: 'Dibatalkan', updated_at: new Date().toISOString() })
+          .eq('id', id);
+        if (error) { showToast('Gagal membatalkan: ' + error.message, 'error'); return; }
+        showToast('Pesanan berhasil dibatalkan', 'success');
+        const idx = allOrders.findIndex(o => o.id === id);
+        if (idx > -1) allOrders[idx].status = 'Dibatalkan';
+        updateStats();
+        renderOrders();
+      });
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('invoiceModal').addEventListener('click', function(e) {
+      if (e.target === this) closeInvoice();
+    });
+  </script>
+</body>
+</html>
