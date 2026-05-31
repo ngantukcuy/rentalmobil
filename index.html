@@ -171,7 +171,7 @@
     // Auto redirect jika sudah login
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) window.location.href = 'dashboard.html';
+      if (session) window.location.href = 'pages/dashboard.html';
     })();
 
     // ─── TABS ───
@@ -213,7 +213,7 @@
       }
 
       btn.textContent = '✓ Masuk...';
-      window.location.href = 'dashboard.html';
+      window.location.href = 'pages/dashboard.html';
     }
 
     // ─── REGISTER ───
